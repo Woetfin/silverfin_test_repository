@@ -1,0 +1,246 @@
+empty_state: &unit_blueprint
+  context:
+    period: 2021-12-31
+
+  data:
+    periods:
+      2021-12-31:
+
+  expectation:
+    reconciled: false
+    results: &results_blueprint
+      vat_bookkeeping:
+      vat_explained: 0.0
+      BTW_herz_R61:
+      BTW_herz_R62:
+
+######################################################
+
+# UNIT 1: Receivable VAT amount
+
+######################################################
+
+# UNIT 1 - TEST 1: default accounts value are equal to the explained amounts
+receivable_amount_default_equal:
+  <<: *unit_blueprint
+
+  data:
+    periods:
+      2021-12-31:
+        accounts: &accounts_blueprint
+          "411000":
+            name: "Terug te vorderen BTW"
+            value: 4564.67
+          "411500":
+            name: "Terug te vorderen BTW - herziening"
+            value: 46.41
+        reconciliations:
+          btw_saldo:
+            custom: &custom_blueprint
+              # Leave account collection blank (account.numbers), since the accounts should be added by the default
+              account.numbers: ""
+              uitreksel.uitreksel_1:
+                aard: "BTW aangifte"
+                value: "5418.47"
+              uitreksel.uitreksel_2:
+                aard: "BTW herziening"
+                value: "-807.39"
+
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_blueprint
+      vat_bookkeeping: 4611.08
+      vat_explained: 4611.08
+      BTW_herz_R61: -807.39
+
+# UNIT 1 - TEST 2: manual accounts value are equal to the explained amounts
+receivable_amount_manual_equal:
+  <<: *unit_blueprint
+
+  data:
+    periods:
+      2021-12-31:
+        accounts:
+          <<: *accounts_blueprint
+          "411001":
+            name: "Terug te vorderen BTW"
+            value: 4564.67
+        reconciliations:
+          btw_saldo:
+            custom:
+              <<: *custom_blueprint
+              account.numbers: "411001,411500"
+
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_blueprint
+      vat_bookkeeping: 4611.08
+      vat_explained: 4611.08
+      BTW_herz_R61: -807.39
+
+# UNIT 1 - TEST 3: accounts value are higher than the explained amounts
+receivable_amount_higher:
+  <<: *unit_blueprint
+
+  data:
+    periods:
+      2021-12-31:
+        accounts:
+          <<: *accounts_blueprint
+          "411000":
+            name: "Terug te vorderen BTW"
+            value: 5213.22
+        reconciliations:
+          btw_saldo:
+            custom:
+              *custom_blueprint
+
+  expectation:
+    reconciled: false
+    results:
+      <<: *results_blueprint
+      vat_bookkeeping: 5259.63
+      vat_explained: 4611.08
+      BTW_herz_R61: -807.39
+
+# UNIT 1 - TEST 4: accounts value are lower than the explained amounts
+receivable_amount_lower:
+  <<: *unit_blueprint
+
+  data:
+    periods:
+      2021-12-31:
+        accounts:
+          *accounts_blueprint
+        reconciliations:
+          btw_saldo:
+            custom:
+              <<: *custom_blueprint
+              uitreksel.uitreksel_1:
+                aard: "BTW aangifte"
+                value: "6067.02"
+
+  expectation:
+    reconciled: false
+    results:
+      <<: *results_blueprint
+      vat_bookkeeping: 4611.08
+      vat_explained: 5259.63
+      BTW_herz_R61: -807.39
+
+######################################################
+
+# UNIT 2: Payable VAT amount
+
+######################################################
+
+# UNIT 2 - TEST 1: default accounts value are equal to the explained amounts
+payable_amount_default_equal:
+  <<: *unit_blueprint
+
+  data:
+    periods:
+      2021-12-31:
+        accounts: &accounts_blueprint
+          "451000":
+            name: "Te betalen BTW"
+            value: -4564.67
+          "451600":
+            name: "Te betalen BTW"
+            value: -46.41
+        reconciliations:
+          btw_saldo:
+            custom: &custom_blueprint
+              # Leave account collection blank (account.numbers), since the accounts should be added by the default
+              account.numbers: ""
+              uitreksel.uitreksel_1:
+                aard: "BTW aangifte"
+                value: "-5418.47"
+              uitreksel.uitreksel_2:
+                aard: "BTW herziening"
+                value: "807.39"
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_blueprint
+      vat_bookkeeping: -4611.08
+      vat_explained: -4611.08
+      BTW_herz_R62: 807.39
+
+# UNIT 2 - TEST 2: manual accounts value are equal to the explained amounts
+payable_amount_manual_equal:
+  <<: *unit_blueprint
+
+  data:
+    periods:
+      2021-12-31:
+        accounts:
+          <<: *accounts_blueprint
+          "451001":
+            name: "Te betalen BTW"
+            value: -4564.67
+        reconciliations:
+          btw_saldo:
+            custom:
+              <<: *custom_blueprint
+              account.numbers: "451001,451600"
+
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_blueprint
+      vat_bookkeeping: -4611.08
+      vat_explained: -4611.08
+      BTW_herz_R62: 807.39
+
+# UNIT 2 - TEST 3: accounts value are higher than the explained amounts
+payable_amount_higher:
+  <<: *unit_blueprint
+
+  data:
+    periods:
+      2021-12-31:
+        accounts:
+          <<: *accounts_blueprint
+          "451000":
+            name: "Te betalen BTW"
+            value: -5213.22
+        reconciliations:
+          btw_saldo:
+            custom:
+              *custom_blueprint
+
+  expectation:
+    reconciled: false
+    results:
+      <<: *results_blueprint
+      vat_bookkeeping: -5259.63
+      vat_explained: -4611.08
+      BTW_herz_R62: 807.39
+
+# UNIT 2 - TEST 4: accounts value are lower than the explained amounts
+payable_amount_lower:
+  <<: *unit_blueprint
+
+  data:
+    periods:
+      2021-12-31:
+        accounts:
+          *accounts_blueprint
+        reconciliations:
+          btw_saldo:
+            custom:
+              <<: *custom_blueprint
+              uitreksel.uitreksel_1:
+                aard: "BTW aangifte"
+                value: "-6067.02"
+
+  expectation:
+    reconciled: false
+    results:
+      <<: *results_blueprint
+      vat_bookkeeping: -4611.08
+      vat_explained: -5259.63
+      BTW_herz_R62: 807.39
