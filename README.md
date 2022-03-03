@@ -1,4 +1,4 @@
-# VAT balance documentation
+# VAT balance text
 
 ## TEST CASES REASONING
 
