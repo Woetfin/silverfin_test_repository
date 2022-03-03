@@ -1,4 +1,4 @@
-# VAT balance liquid test
+# VAT balance documentation
 
 ## TEST CASES REASONING
 
