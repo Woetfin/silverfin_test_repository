@@ -1,4 +1,4 @@
-# VAT balance documentation
+# VAT balance liquid test
 
 ## TEST CASES REASONING
 
@@ -38,7 +38,7 @@ We'll also build test cases that use multiple accounts and inputs to test the su
 
 ### Tests per unit
 
-**TEST 1:** default accounts value are equal to the explained amounts
+**TEST 01:** default accounts value are equal to the explained amounts
 
 **TEST 2:** manual accounts value are equal to the explained amounts
 
