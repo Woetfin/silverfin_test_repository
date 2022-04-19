@@ -1,0 +1,509 @@
+empty_state: &unit_blueprint
+  context:
+    period: 2021-12-31
+
+  data:
+    company: &company_blueprint
+      year_end: 2020-12-31
+
+    periods:
+      2021-12-31:
+
+  expectation:
+    reconciled: false
+    results:
+      housing:
+    rollforward:
+      beneficiaries.beneficiary_1:
+        full_name:
+      summary_vat_paid.period_01_2021:
+      summary_vat_revised.period_01_2021:
+
+######################################################
+
+# UNIT 1: Vehicle - Calendar year
+
+######################################################
+
+# UNIT 1 - TEST 1: Date first registration is inside bookyear + No date out of service + car age 2 months 
+unit_1_test_1_age_factor_calendar_year_age_2_months:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: -638.13
+        reconciliations: &reconciliations_blueprint
+          wagenpark:
+            custom:
+              fleet.fleet_3: &car_blueprint
+                TVA: "10059.33"
+                price: "47901.67"
+                discount: "5961.98"
+                emission: "138"
+                property: "2"
+                fuel_type: "Diesel"
+                brand_type: "BMW X3"
+                companycar: "1"
+                beneficiary: "Kim Ryssack"
+                license_plate: "1TQY376"
+                out_of_service: ""
+                date_in_service: "23/11/2021"
+                first_registration: "19/11/2021"
+          benefit_in_kind:
+            custom:
+              beneficiary_1_other_cars.beneficiary_1_other_car_1:
+                selection: "fleet_3"
+              beneficiary_1_other_car_1_types.beneficiary_1_other_car_1_type_1:
+                selection: "fiche"
+              beneficiaries.beneficiary_1:
+                city: "Brasschaat"
+                name: "Kim Ryssack"
+                number: "320 B"
+                street: "Bredabaan"
+                selection: "other"
+                postal_code: "2930"
+                enable_benefit_category_vehicle: true
+              bik.accounts: "745140"
+
+  expectation:
+    reconciled: true
+    results: &results_expectations
+        vehicle_applicable: true
+        total_vehicle: 638.13
+        housing:
+    rollforward: &rollforward_expectations
+      beneficiaries.beneficiary_1:
+        full_name: "Kim Ryssack"
+      beneficiary_1_other_cars.beneficiary_1_other_car_1:
+        full_option: "Kim Ryssack - BMW X3 - 1TQY376"
+      beneficiaries.beneficiary_2:
+        full_name:
+      beneficiary_1_other_summary_ca.period_01_2021:
+      beneficiary_1_other_summary_fiche.period_01_2021: 638.13
+      beneficiary_1_other_summary_invoice.period_01_2021:
+      summary_vat_paid.period_01_2021:
+
+# UNIT 1 - TEST 2: Date first registration is outside bookyear + No date out of service + car age 14 months
+unit_1_test_2_calendar_year_age_14_months:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: -5912.35
+        reconciliations:
+          <<: *reconciliations_blueprint
+          wagenpark:
+            custom:
+              fleet.fleet_3:
+                <<: *car_blueprint
+                date_in_service: "23/11/2020"
+                first_registration: "19/11/2020"
+            
+  
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_expectations
+      total_vehicle: 5912.35
+    rollforward:
+      <<: *rollforward_expectations
+      beneficiary_1_other_summary_fiche.period_01_2021: 5912.35
+
+# UNIT 1 - TEST 3: Date first registration is outside bookyear + No date out of service + car age 67 months
+unit_1_test_3_calendar_year_age_67_months:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: -4328.81
+        reconciliations:
+          <<: *reconciliations_blueprint
+          wagenpark:
+            custom:
+              fleet.fleet_3:
+                <<: *car_blueprint
+                date_in_service: "23/06/2016"
+                first_registration: "19/06/2016"
+            
+  
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_expectations
+      total_vehicle: 4328.81
+    rollforward:
+      <<: *rollforward_expectations
+      beneficiary_1_other_summary_fiche.period_01_2021: 4328.81
+
+# UNIT 1 - TEST 4: Date first registration is outside bookyear + No date out of service + car age factor switch equals exact bookyear
+unit_1_test_4_calendar_year_age_factor_switch_equals_calendar_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: -4180.56
+        reconciliations:
+          <<: *reconciliations_blueprint
+          wagenpark:
+            custom:
+              fleet.fleet_3:
+                <<: *car_blueprint
+                date_in_service: "23/06/2016"
+                first_registration: "01/01/2016"
+            
+  
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_expectations
+      total_vehicle: 4180.56
+    rollforward:
+      <<: *rollforward_expectations
+      beneficiary_1_other_summary_fiche.period_01_2021: 4180.56      
+
+# UNIT 1 - TEST 5: Date first registration is inside bookyear + Date out of service inside bookyear
+unit_1_test_5_calendar_year_dates_inside_bookyear:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: -2912.49
+        reconciliations:
+          <<: *reconciliations_blueprint
+          wagenpark:
+            custom:
+              fleet.fleet_3:
+                <<: *car_blueprint
+                date_in_service: "23/06/2021"
+                first_registration: "05/06/2021"
+                out_of_service: "18/12/2021"
+  
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_expectations
+      total_vehicle: 2912.49
+    rollforward:
+      <<: *rollforward_expectations
+      beneficiary_1_other_summary_fiche.period_01_2021: 2912.49
+
+# UNIT 1 - TEST 6: Date first registration is outside bookyear + Date out of service inside bookyear
+unit_1_test_6_calendar_year_out_of_service_inside_bookyear:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: -4709.39
+        reconciliations:
+          <<: *reconciliations_blueprint
+          wagenpark:
+            custom:
+              fleet.fleet_3:
+                <<: *car_blueprint
+                date_in_service: "19/01/2018"
+                first_registration: "19/01/2018"
+                out_of_service: "18/12/2021"
+  
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_expectations
+      total_vehicle: 4709.39
+    rollforward:
+      <<: *rollforward_expectations
+      beneficiary_1_other_summary_fiche.period_01_2021: 4709.39
+
+# UNIT 1 - TEST 7: Date first registration is outside bookyear + Date out of service in previous bookyear
+unit_1_test_7_out_of_service_previous_bookyear:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: 0
+        reconciliations:
+          <<: *reconciliations_blueprint
+          wagenpark:
+            custom:
+              fleet.fleet_3:
+                <<: *car_blueprint
+                date_in_service: "19/01/2018"
+                first_registration: "19/01/2018"
+                out_of_service: "18/12/2020"
+  
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_expectations
+      total_vehicle: 0.0
+    rollforward:
+      beneficiaries.beneficiary_1:
+        full_name: "Kim Ryssack"
+      beneficiary_1_other_cars.beneficiary_1_other_car_1:
+        full_option: "Kim Ryssack - BMW X3 - 1TQY376"
+      beneficiaries.beneficiary_2:
+        full_name:
+      beneficiary_1_other_summary_ca.period_01_2021:
+      beneficiary_1_other_summary_invoice.period_01_2021:
+      summary_vat_paid.period_01_2021:
+
+######################################################
+
+# UNIT 2: Vehicle - Broken year
+
+######################################################
+
+# UNIT 2 - TEST 1: Date first registration is inside bookyear + No date out of service + car age 2 months
+unit_2_test_1_broken_year_age_2_months:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    special_book_years: &bookyears_blueprint
+      2019-06-01: 2021-12-31
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: -638.13
+        reconciliations:
+          <<: *reconciliations_blueprint
+
+  expectation:
+    reconciled: true
+    results: &results_expectations
+      vehicle_applicable: true
+      total_vehicle: 638.13
+      housing:
+    rollforward: &rollforward_expectations
+      beneficiaries.beneficiary_1:
+        full_name: "Kim Ryssack"
+      beneficiary_1_other_cars.beneficiary_1_other_car_1:
+        full_option: "Kim Ryssack - BMW X3 - 1TQY376"
+      beneficiaries.beneficiary_2:
+        full_name:
+      beneficiary_1_other_summary_ca.period_01_2021:
+      beneficiary_1_other_summary_fiche.period_01_2021: 638.13
+      beneficiary_1_other_summary_invoice.period_01_2021:
+      summary_vat_paid.period_01_2021:
+
+# UNIT 2 - TEST 2: Date first registration is outside bookyear + No date out of service + car age 14 months
+unit_1_test_2_broken_year_age_14_months:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    special_book_years: *bookyears_blueprint
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: -6507.87
+        reconciliations:
+          <<: *reconciliations_blueprint
+          wagenpark:
+            custom:
+              fleet.fleet_3:
+                <<: *car_blueprint
+                date_in_service: "23/11/2020"
+                first_registration: "19/11/2020"
+            
+  
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_expectations
+      total_vehicle: 6507.87
+    rollforward:
+      <<: *rollforward_expectations
+      beneficiary_1_other_summary_fiche.period_01_2021: 5912.35
+
+
+# UNIT 2 - TEST 3: Date first registration is outside bookyear + No date out of service + car age 67 months
+unit_2_test_3_calendar_year_age_67_months:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    special_book_years: *bookyears_blueprint
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: -11481.37
+        reconciliations:
+          <<: *reconciliations_blueprint
+          wagenpark:
+            custom:
+              fleet.fleet_3:
+                <<: *car_blueprint
+                date_in_service: "23/06/2016"
+                first_registration: "19/06/2016"
+            
+  
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_expectations
+      total_vehicle: 11481.37
+    rollforward:
+      <<: *rollforward_expectations
+      beneficiary_1_other_summary_fiche.period_01_2021: 4328.81
+
+# UNIT 2 - TEST 4: Date first registration is outside bookyear + No date out of service + car age factor switch equals exact bookyear
+unit_2_test_4_calendar_year_age_factor_switch_equals_calendar_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    special_book_years: *bookyears_blueprint
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: -11193.86
+        reconciliations:
+          <<: *reconciliations_blueprint
+          wagenpark:
+            custom:
+              fleet.fleet_3:
+                <<: *car_blueprint
+                date_in_service: "23/06/2016"
+                first_registration: "01/01/2016"
+            
+  
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_expectations
+      total_vehicle: 11193.86
+    rollforward:
+      <<: *rollforward_expectations
+      beneficiary_1_other_summary_fiche.period_01_2021: 4180.56
+
+# UNIT 2 - TEST 5: Date first registration is inside bookyear + Date out of service inside bookyear
+unit_2_test_5_calendar_year_dates_inside_bookyear:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    special_book_years: *bookyears_blueprint
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: -2912.49
+        reconciliations:
+          <<: *reconciliations_blueprint
+          wagenpark:
+            custom:
+              fleet.fleet_3:
+                <<: *car_blueprint
+                date_in_service: "23/06/2021"
+                first_registration: "05/06/2021"
+                out_of_service: "18/12/2021"
+  
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_expectations
+      total_vehicle: 2912.49
+    rollforward:
+      <<: *rollforward_expectations
+      beneficiary_1_other_summary_fiche.period_01_2021: 2912.49
+
+# UNIT 2 - TEST 6: Date first registration is outside bookyear + Date out of service inside bookyear
+unit_2_test_6_calendar_year_out_of_service_inside_bookyear:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    special_book_years: *bookyears_blueprint
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: -12798.09
+        reconciliations:
+          <<: *reconciliations_blueprint
+          wagenpark:
+            custom:
+              fleet.fleet_3:
+                <<: *car_blueprint
+                date_in_service: "19/01/2018"
+                first_registration: "19/01/2018"
+                out_of_service: "18/12/2021"
+  
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_expectations
+      total_vehicle: 12798.09
+    rollforward:
+      <<: *rollforward_expectations
+      beneficiary_1_other_summary_fiche.period_01_2021: 4709.39
+
+# UNIT 2 - TEST 7: Date first registration is outside bookyear + Date out of service in previous bookyear
+unit_2_test_7_out_of_service_previous_bookyear:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+    special_book_years: *bookyears_blueprint
+    periods:
+      2021-12-31:
+        accounts:
+          "745140":
+            value: 0.0
+        reconciliations:
+          <<: *reconciliations_blueprint
+          wagenpark:
+            custom:
+              fleet.fleet_3:
+                <<: *car_blueprint
+                date_in_service: "19/01/2016"
+                first_registration: "19/01/2016"
+                out_of_service: "18/12/2017"
+  
+  expectation:
+    reconciled: true
+    results:
+      <<: *results_expectations
+      total_vehicle: 0.0
+    rollforward:
+      beneficiaries.beneficiary_1:
+        full_name: "Kim Ryssack"
+      beneficiary_1_other_cars.beneficiary_1_other_car_1:
+        full_option: "Kim Ryssack - BMW X3 - 1TQY376"
+      beneficiaries.beneficiary_2:
+        full_name:
+      beneficiary_1_other_summary_ca.period_01_2021:
+      beneficiary_1_other_summary_invoice.period_01_2021:
+      summary_vat_paid.period_01_2021:
