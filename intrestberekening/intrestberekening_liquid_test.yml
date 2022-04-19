@@ -1,0 +1,113 @@
+# UNIT 0: Empty state
+empty_state: &unit_blueprint
+  context:
+    period: 2020-06-30
+
+  data:
+    company: &company_blueprint
+      year_end: 2020-06-30
+
+    periods:
+      2020-06-30:
+        accounts:
+          "416000":
+            id: 181049429
+            value: 100
+        reconciliations:
+          intrestberekening:
+            custom:
+              accounts.numbers: "416000"
+  
+  expectation:
+    reconciled: false
+    results: &results_blueprint
+      total_debet_interests: 0.0
+      total_credit_interests: 0.0
+      total_debet_interests_account_181049429: 0.0
+      total_credit_interests_account_181049429: 0.0
+      total_net_intrest: 0.0
+
+######################################################
+
+# UNIT 1: Debet account with a credit value
+
+######################################################
+
+### UPDATED CALCULATION - DAY ###
+
+# UNIT 1 - TEST 1: updated broken bookyear calculation - day - default credit values
+debet_acc_credit_value_default_broken_day:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: &accounts_blueprint
+          "110900":
+            value: -500.32
+          "111900":
+            value: -52653.38
+          "416600":
+            id: 181049429
+            name: Rekening courant zaakvoerder
+            value: -185887.96
+            custom:
+              details.detail_2:
+                date: "01/07/2019"
+                title: "OPENING/OUVERTURE"
+                value: "-180821.63"
+              details.detail_11:
+                date: "31/12/2019"
+                title: "Betaling Lunch Garden privé"
+                value: "-62.47"
+              details.detail_36:
+                date: "30/06/2020"
+                title: "zout zwembad"
+                value: "325.49"
+              details.detail_3:
+                date: "25/07/2019"
+                title: "ELECTRABEL"
+                value: "107.64"
+              details.detail_5:
+                date: "25/08/2019"
+                title: "ELECTRABEL"
+                value: "215385.74"
+              details.detail_37:
+                date: "10/11/2019"
+                title: "ELECTRABEL"
+                value: "-221071.32"
+              details.detail_20:
+                date: "19/06/2020"
+                title: "Teruggave sociale bijdrage Liantis"
+                value: "248.59"
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom: &reconciliation_inputs_blueprint
+              accounts.numbers: "416600"
+              # Enable requalification check
+              checks.enable_requalification_and_thin_cap: false
+              checks.capital_accounts: "111900"
+              # New calculation
+              checks.enable_broken_book_year: true
+
+              # Calculation type
+              181049429.person_type: "natural_person"
+              181049429.manueel: "dag"
+
+              # Taxes
+              181049429.datum: "01/10/2020"
+              181049429.RV: "0.3"
+              181049429.geboekt: "0"
+
+  expectation: &expectation_blueprint
+    reconciled: true
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 640.44
+      total_credit_interests: 5942.18
+      total_debet_interests_account_181049429: 640.44
+      total_credit_interests_account_181049429: 5942.18
+      total_net_intrest: -3519.08
