@@ -37,7 +37,7 @@ The company where the tests were performed can be found here: https://live.getsi
 
 **UNIT 2:** Debet account with a debet value
 
-**UNIT 3:** Credit account with a credit value
+**UNIT 3:** Credit account with a credit value (includes additional tests - manually adjusted interest rates)
 
 **UNIT 4:** Credit account with a debet value 
 
@@ -149,3 +149,18 @@ Tests for every calculation type is not necessary since we already have detailed
 
 **TEST 2:** updated broken bookyear calculation - day - manually adjusted credit & debet value
 
+### Additional tests per unit - manually adjusted interest rates
+
+**TEST 1:** updated broken bookyear calculation - day - old standard custom interest adjusted
+
+**TEST 2:** updated broken bookyear calculation - day - updated standard custom interest adjusted
+
+**TEST 3:** updated broken bookyear calculation - day - line-specific custom interest adjusted
+
+### Additional tests per unit - manually adjusted interest rates
+
+**TEST 1:** updated broken bookyear calculation - day - old standard custom interest adjusted
+
+**TEST 2:** updated broken bookyear calculation - day - updated standard custom interest adjusted
+
+**TEST 3:** updated broken bookyear calculation - day - updated standard custom interest adjusted + line-specific custom interest adjusted
