@@ -1,0 +1,2306 @@
+# UNIT 0: Empty state
+empty_state: &unit_blueprint
+  context:
+    period: 2020-06-30
+
+  data:
+    company: &company_blueprint
+      year_end: 2020-06-30
+
+    periods:
+      2020-06-30:
+        accounts:
+          "416000":
+            id: 181049429
+            value: 100
+        reconciliations:
+          intrestberekening:
+            custom:
+              accounts.numbers: "416000"
+  
+  expectation:
+    reconciled: false
+    results: &results_blueprint
+      total_debet_interests: 0.0
+      total_credit_interests: 0.0
+      total_debet_interests_account_181049429: 0.0
+      total_credit_interests_account_181049429: 0.0
+      total_net_intrest: 0.0
+
+######################################################
+
+# UNIT 1: Debet account with a credit value
+
+######################################################
+
+### UPDATED CALCULATION - DAY ###
+
+# UNIT 1 - TEST 1: updated broken bookyear calculation - day - default credit values
+debet_acc_credit_value_default_broken_day:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: &accounts_blueprint
+          "110900":
+            value: -500.32
+          "111900":
+            value: -52653.38
+          "416600":
+            id: 181049429
+            name: Rekening courant zaakvoerder
+            value: -185887.96
+            custom:
+              details.detail_2:
+                date: "01/07/2019"
+                title: "OPENING/OUVERTURE"
+                value: "-180821.63"
+              details.detail_11:
+                date: "31/12/2019"
+                title: "Betaling Lunch Garden privé"
+                value: "-62.47"
+              details.detail_36:
+                date: "30/06/2020"
+                title: "zout zwembad"
+                value: "325.49"
+              details.detail_3:
+                date: "25/07/2019"
+                title: "ELECTRABEL"
+                value: "107.64"
+              details.detail_5:
+                date: "25/08/2019"
+                title: "ELECTRABEL"
+                value: "215385.74"
+              details.detail_37:
+                date: "10/11/2019"
+                title: "ELECTRABEL"
+                value: "-221071.32"
+              details.detail_20:
+                date: "19/06/2020"
+                title: "Teruggave sociale bijdrage Liantis"
+                value: "248.59"
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom: &reconciliation_inputs_blueprint
+              accounts.numbers: "416600"
+              # Enable requalification check
+              checks.enable_requalification_and_thin_cap: false
+              checks.capital_accounts: "111900"
+              # New calculation
+              checks.enable_broken_book_year: true
+
+              # Calculation type
+              181049429.person_type: "natural_person"
+              181049429.manueel: "dag"
+
+              # Taxes
+              181049429.datum: "01/10/2020"
+              181049429.RV: "0.3"
+              181049429.geboekt: "0"
+
+  expectation: &expectation_blueprint
+    reconciled: true
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 640.44
+      total_credit_interests: 5942.18
+      total_debet_interests_account_181049429: 640.44
+      total_credit_interests_account_181049429: 5942.18
+      total_net_intrest: -3519.08
+
+# UNIT 1 - TEST 2: updated broken bookyear calculation - day - manually adjusted credit & debet value
+debet_acc_credit_value_manual_broken_day:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Manually adusted value
+              period_intrest_181049429_25_08_2019.bedrag: 50746.09
+              period_intrest_181049429_19_06_2020.bedrag: -190523.85
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 937.36
+      total_credit_interests: 5947.44
+      total_debet_interests_account_181049429: 937.36
+      total_credit_interests_account_181049429: 5947.44
+      total_net_intrest: -3225.85
+
+### UPDATED CALCULATION - MONTH ###
+
+# UNIT 1 - TEST 3: updated broken bookyear calculation - month - default credit values
+debet_acc_credit_value_default_broken_month:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "maand"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 507.36
+      total_credit_interests: 5224.4
+      total_debet_interests_account_181049429: 507.36
+      total_credit_interests_account_181049429: 5224.4
+      total_net_intrest: -3149.72
+
+# UNIT 1 - TEST 4: updated broken bookyear calculation - month - manually adjusted credit & debet value
+debet_acc_credit_value_manual_broken_month:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "maand"
+
+              # Manually adjusted values
+              juli_19__181049429.bedrag: -95357.00
+              januari_20__181049429.bedrag: 180527.87
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 2041.85
+      total_credit_interests: 4610.45
+      total_debet_interests_account_181049429: 2041.85
+      total_credit_interests_account_181049429: 4610.45
+      total_net_intrest: -1185.46
+
+### UPDATED CALCULATION - QUARTER ###
+
+# UNIT 1 - TEST 5: updated broken bookyear calculation - quarter - default credit values
+debet_acc_credit_value_default_broken_quarter:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "kwartaal"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 380.52
+      total_credit_interests: 4552.6
+      total_debet_interests_account_181049429: 380.52
+      total_credit_interests_account_181049429: 4552.6
+      total_net_intrest: -2806.3
+
+# UNIT 1 - TEST 6: updated broken bookyear calculation - quarter - manually adjusted credit & debet value
+debet_acc_credit_value_manual_broken_quarter:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "kwartaal"
+
+              # Manually adjusted values
+              Q3-2019__181049429.bedrag: -95357.0
+              Q4-2019__181049429.bedrag: 180527.87
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 3962.59
+      total_credit_interests: 4750.14
+      total_debet_interests_account_181049429: 3962.59
+      total_credit_interests_account_181049429: 4750.14
+      total_net_intrest: 637.49
+
+### UPDATED CALCULATION - YEAR ###
+
+# UNIT 1 - TEST 7: updated broken bookyear calculation - year - default credit values
+debet_acc_credit_value_default_broken_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "jaar"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 0.0
+      total_credit_interests: 5671.94
+      total_credit_interests_account_181049429: 5671.94
+      total_net_intrest: -3970.36
+
+# UNIT 1 - TEST 8: updated broken bookyear calculation - year - manually adjusted credit & debet value
+debet_acc_credit_value_manual_broken_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "jaar"
+
+              # Manually adjusted values
+              31_12_2019__181049429.bedrag: 90263.94
+              30_06_2020__181049429.bedrag: -185207.92
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 3962.59
+      total_credit_interests: 3759.72
+      total_debet_interests_account_181049429: 3962.59
+      total_credit_interests_account_181049429: 3759.72
+      total_net_intrest: 1330.79
+
+### UPDATED CALCULATION - REQUALIFICATION ###
+
+# UNIT 1 - TEST 9: updated broken bookyear calculation - day - default credit values - requalification applied
+debet_acc_credit_value_default_broken_day_requalification:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Enable requalification check
+              checks.enable_requalification_and_thin_cap: true
+
+  expectation:
+    <<: *expectation_blueprint
+    results: 
+      <<: *results_blueprint
+      total_debet_interests: 640.44
+      total_credit_interests: 5942.18
+      total_debet_interests_account_181049429: 640.44
+      total_credit_interests_account_181049429: 5942.18
+      total_requalified_gross_dividend: 0.0
+      total_net_intrest: -3519.08
+
+# UNIT 1 - TEST 10: updated broken bookyear calculation - month - default credit values - requalification applied
+debet_acc_credit_value_default_broken_month_requalification:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Enable requalification check
+              checks.enable_requalification_and_thin_cap: true
+
+              # Calculation type
+              181049429.manueel: "maand"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 507.36
+      total_credit_interests: 5224.4
+      total_debet_interests_account_181049429: 507.36
+      total_credit_interests_account_181049429: 5224.4
+      total_requalified_gross_dividend: 0.0
+      total_net_intrest: -3149.72
+
+### UPDATED CALCULATION - EXCESSIVE INTEREST ###
+
+# UNIT 1 - TEST 11: updated broken bookyear calculation - day - default credit values - excessive interest applied
+debet_acc_credit_value_default_broken_day_excessive:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Enable requalification check
+              checks.capital_accounts: "110900"
+              checks.enable_requalification_and_thin_cap: true
+              181049429.person_type: "affiliated_legal_person"
+
+              # Calculation type
+              181049429.manueel: "dag"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 640.44
+      total_credit_interests: 5942.18
+      total_debet_interests_account_181049429: 640.44
+      total_credit_interests_account_181049429: 5942.18
+      total_excessive_intrest: 594.23
+      total_net_intrest: -3519.08
+
+# UNIT 1 - TEST 12: updated broken bookyear calculation - month - default credit values - excessive interest applied
+debet_acc_credit_value_default_broken_month_excessive:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Enable requalification check
+              checks.capital_accounts: "110900"
+              checks.enable_requalification_and_thin_cap: true
+              181049429.person_type: "affiliated_legal_person"
+
+              # Calculation type
+              181049429.manueel: "maand"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 507.36
+      total_credit_interests: 5224.4
+      total_debet_interests_account_181049429: 507.36
+      total_credit_interests_account_181049429: 5224.4
+      total_excessive_intrest: 470.76
+      total_net_intrest: -3149.72
+
+### OLD CALCULATION - DAY ###
+
+# UNIT 1 - TEST 13: old broken bookyear calculation - day - default credit values
+debet_acc_credit_value_default_old_day:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "dag"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 642.2
+      total_credit_interests: 5958.46
+      total_debet_interests_account_181049429: 642.2
+      total_credit_interests_account_181049429: 5958.46
+      total_net_intrest: -3528.73
+
+# UNIT 1 - TEST 14: old broken bookyear calculation - day - manually adjusted credit & debet value
+debet_acc_credit_value_manual_old_day:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "dag"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+              # Manually adusted value
+              period_intrest_181049429_01_07_2019.bedrag: -904108.15
+              period_intrest_181049429_19_06_2020.bedrag: 186213.45
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 1134.92
+      total_credit_interests: 7661.5
+      total_debet_interests_account_181049429: 1134.92
+      total_credit_interests_account_181049429: 7661.5
+      total_net_intrest: -4228.13
+
+### OLD CALCULATION - MONTH ###
+
+# UNIT 1 - TEST 15: old broken bookyear calculation - month - default credit values
+debet_acc_credit_value_default_old_month:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "maand"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 507.36
+      total_credit_interests: 5224.4
+      total_debet_interests_account_181049429: 507.36
+      total_credit_interests_account_181049429: 5224.4
+      total_net_intrest: -3149.72
+
+# UNIT 1 - TEST 16: old broken bookyear calculation - month - manually adjusted credit & debet value
+debet_acc_credit_value_manual_old_month:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "maand"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+              september_19__181049429.bedrag: "60394.10"
+              februari_20__181049429.bedrag: "-30789.65"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 695.57
+      total_credit_interests: 4697.71
+      total_debet_interests_account_181049429: 695.57
+      total_credit_interests_account_181049429: 4697.71
+      total_net_intrest: -2592.83
+
+### OLD CALCULATION - QUARTER ###
+
+# UNIT 1 - TEST 17: old broken bookyear calculation - quarter - default credit values
+debet_acc_credit_value_default_old_quarter:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "kwartaal"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 380.52
+      total_credit_interests: 4552.6
+      total_debet_interests_account_181049429: 380.52
+      total_credit_interests_account_181049429: 4552.6
+      total_net_intrest: -2806.3
+
+# UNIT 1 - TEST 18: old broken bookyear calculation - quarter - manually adjusted credit & debet value
+debet_acc_credit_value_manual_old_quarter: 
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "kwartaal"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+              Q3-2019__181049429.bedrag: "-95357.0"
+              Q4-2019__181049429.bedrag: "180527.87"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 3962.59
+      total_credit_interests: 4750.14
+      total_debet_interests_account_181049429: 3962.59
+      total_credit_interests_account_181049429: 4750.14
+      total_net_intrest: 637.49
+
+### OLD CALCULATION - YEAR ###
+
+# UNIT 1 - TEST 19: old broken bookyear calculation - year - default credit values
+debet_acc_default_value_default_old_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "jaar"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_credit_interests: 3773.53
+      
+      total_credit_interests_account_181049429: 3773.53
+      total_net_intrest: -2641.47
+
+# UNIT 1 - TEST 20: old broken bookyear calculation - year - manually adjusted credit value
+debet_acc_credit_value_manual_credit_old_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "jaar"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+              181049429.bedrag: -93943.98
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_credit_interests: 3814.13
+      
+      total_credit_interests_account_181049429: 3814.13
+      total_net_intrest: -2669.89
+
+# UNIT 1 - TEST 21: old broken bookyear calculation - year - manually adjusted debet value
+debet_acc_credit_value_manual_debet_old_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "jaar"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+              181049429.bedrag: 83943.98
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 7370.28
+      total_debet_interests_account_181049429: 7370.28
+      
+      total_net_intrest: 7370.28
+
+######################################################
+
+# UNIT 2: Debet account with a debet value
+
+######################################################
+
+### UPDATED CALCULATION - DAY ###
+
+# UNIT 2 - TEST 1: updated broken bookyear calculation - day - default debet values
+debet_acc_debet_value_default_broken_day:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: &accounts_blueprint
+          "111900":
+            value: -52653.38
+          "416000":
+            id: 181049429
+            name: Rekening courant zaakvoerder
+            value: 6212.75
+            custom:
+              details.detail_2:
+                date: "05/09/2019"
+                title: "Afname"
+                value: "-2182.25"
+              details.detail_1:
+                date: "01/07/2019"
+                title: "OPENING"
+                value: "7485.22"
+              details.detail_5:
+                date: "06/03/2020"
+                title: "Storting"
+                value: "1755.86"
+              details.detail_6:
+                date: "08/04/2020"
+                title: "Storting"
+                value: "8697.25"
+              details.detail_4:
+                date: "05/01/2020"
+                title: "Afname"
+                value: "-9682.28"
+              details.detail_3:
+                date: "05/12/2019"
+                title: "Storting"
+                value: "589.66"
+              details.detail_7:
+                date: "05/06/2020"
+                title: "Afname"
+                value: "-450.71"
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom: &reconciliation_inputs_blueprint
+              accounts.numbers: "416000"
+              # Enable requalification check
+              checks.enable_requalification_and_thin_cap: false
+              checks.capital_accounts: "111900"
+              # New calculation
+              checks.enable_broken_book_year: true
+
+              # Calculation type
+              181049429.person_type: "natural_person"
+              181049429.manueel: "dag"
+
+              # Taxes
+              181049429.datum: "01/10/2020"
+              181049429.RV: "0.3"
+              181049429.geboekt: "0"
+
+  expectation: &expectation_blueprint
+    reconciled: true
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 430.82
+      total_credit_interests: 33.09
+      total_debet_interests_account_181049429: 430.82
+      total_credit_interests_account_181049429: 33.09
+      total_net_intrest: 407.66
+
+# UNIT 2 - TEST 2: updated broken bookyear calculation - day - manually adjusted credit & debet value
+debet_acc_debet_value_manual_broken_day:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Manually adusted value
+              period_intrest_181049429_05_09_2019.bedrag: 50746.09
+              period_intrest_181049429_06_03_2020.bedrag: -190523.85
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 1422.85
+      total_credit_interests: 723.09
+      total_debet_interests_account_181049429: 1422.85
+      total_credit_interests_account_181049429: 723.09
+      total_net_intrest: 916.69
+
+### UPDATED CALCULATION - MONTH ###
+
+# UNIT 2 - TEST 3: updated broken bookyear calculation - month - default values
+debet_acc_debet_value_default_broken_month:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "maand"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 387.47
+      total_credit_interests: 22.67
+      total_debet_interests_account_181049429: 387.47
+      total_credit_interests_account_181049429: 22.67
+      total_net_intrest: 371.6
+
+# UNIT 2 - TEST 4: updated broken bookyear calculation - month - manually adjusted credit & debet value
+debet_acc_debet_value_manual_broken_month:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "maand"
+
+              # Manually adjusted values
+              juli_19__181049429.bedrag: -95357.00
+              januari_20__181049429.bedrag: 180527.87
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 1885.63
+      total_credit_interests: 345.3
+      total_debet_interests_account_181049429: 1885.63
+      total_credit_interests_account_181049429: 345.3
+      total_net_intrest: 1643.93
+
+### UPDATED CALCULATION - QUARTER ###
+
+# UNIT 2 - TEST 5: updated broken bookyear calculation - quarter - default values
+debet_acc_debet_value_default_broken_quarter:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "kwartaal"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 283.55
+      total_debet_interests_account_181049429: 283.55
+      total_net_intrest: 283.55
+
+# UNIT 2 - TEST 6: updated broken bookyear calculation - quarter - manually adjusted credit & debet value
+debet_acc_debet_value_manual_broken_quarter:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "kwartaal"
+
+              # Manually adjusted values
+              Q3-2019__181049429.bedrag: -95357.0
+              Q4-2019__181049429.bedrag: 180527.87
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 4065.07
+      total_credit_interests: 967.87
+      total_debet_interests_account_181049429: 4065.07
+      total_credit_interests_account_181049429: 967.87
+      total_net_intrest: 3387.56
+
+### UPDATED CALCULATION - YEAR ###
+
+# UNIT 2 - TEST 7: updated broken bookyear calculation - year - default values
+debet_acc_debet_value_default_broken_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "jaar"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 438.03
+      total_debet_interests_account_181049429: 438.03
+      total_net_intrest: 438.03
+
+# UNIT 2 - TEST 8: updated broken bookyear calculation - year - manually adjusted credit & debet value
+debet_acc_debet_value_manual_broken_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "jaar"
+
+              # Manually adjusted values
+              31_12_2019__181049429.bedrag: 90263.94
+              30_06_2020__181049429.bedrag: -185207.92
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 3962.59
+      total_credit_interests: 3759.72
+      total_debet_interests_account_181049429: 3962.59
+      total_credit_interests_account_181049429: 3759.72
+      total_net_intrest: 1330.79
+
+### OLD CALCULATION - DAY ###
+
+# UNIT 2 - TEST 9: old broken bookyear calculation - day - default values
+debet_acc_debet_value_default_old_day:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "dag"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 410.68
+      total_credit_interests: 33.18
+      total_debet_interests_account_181049429: 410.68
+      total_credit_interests_account_181049429: 33.18
+      total_net_intrest: 387.45
+
+# UNIT 2 - TEST 10: old broken bookyear calculation - day - manually adjusted credit & debet value
+debet_acc_debet_value_manual_old_day:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "dag"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+              # Manually adusted value
+              period_intrest_181049429_01_07_2019.bedrag: -904108.15
+              period_intrest_181049429_08_04_2020.bedrag: 186213.45
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 2796.89
+      total_credit_interests: 6670.57
+      total_debet_interests_account_181049429: 2796.89
+      total_credit_interests_account_181049429: 6670.57
+      total_net_intrest: -1872.51
+
+### OLD CALCULATION - MONTH ###
+
+# UNIT 2 - TEST 11: old broken bookyear calculation - month - default values
+debet_acc_debet_value_default_old_month:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "maand"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 367.98
+      total_credit_interests: 22.67
+      total_debet_interests_account_181049429: 367.98
+      total_credit_interests_account_181049429: 22.67
+      total_net_intrest: 352.11
+
+# UNIT 2 - TEST 12: old broken bookyear calculation - month - manually adjusted credit & debet value
+debet_acc_debet_value_manual_old_month:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "maand"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+              september_19__181049429.bedrag: "60394.10"
+              februari_20__181049429.bedrag: "-30789.65"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 763.08
+      total_credit_interests: 114.02
+      total_debet_interests_account_181049429: 763.08
+      total_credit_interests_account_181049429: 114.02
+      total_net_intrest: 683.27
+
+### OLD CALCULATION - QUARTER ###
+
+# UNIT 2 - TEST 13: old broken bookyear calculation - quarter - default values
+debet_acc_debet_value_default_old_quarter:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "kwartaal"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 269.29
+      total_debet_interests_account_181049429: 269.29
+      total_net_intrest: 269.29
+
+# UNIT 2 - TEST 14: old broken bookyear calculation - quarter - manually adjusted credit & debet value
+debet_acc_debet_value_manual_old_quarter:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "kwartaal"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+              Q3-2019__181049429.bedrag: "-95357.0"
+              Q4-2019__181049429.bedrag: "180527.87"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 4050.8
+      total_credit_interests: 967.87
+      total_debet_interests_account_181049429: 4050.8
+      total_credit_interests_account_181049429: 967.87
+      total_net_intrest: 3373.29
+
+### OLD CALCULATION - YEAR ###
+
+# UNIT 2 - TEST 15: old broken bookyear calculation - year - default values
+debet_acc_debet_value_default_old_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "jaar"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 272.74
+      total_debet_interests_account_181049429: 272.74
+      total_net_intrest: 272.74
+
+# UNIT 2 - TEST 16: old broken bookyear calculation - year - manually adjusted credit value
+debet_acc_debet_value_manual_credit_old_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "jaar"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+              181049429.bedrag: "-185207.92"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_credit_interests: 7519.44
+      total_credit_interests_account_181049429: 7519.44
+      total_net_intrest: -5263.61
+
+# UNIT 2 - TEST 17: old broken bookyear calculation - year - manually adjusted debet value
+debet_acc_debet_value_manual_debet_old_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "jaar"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+              181049429.bedrag: "90263.94"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 7925.17
+      total_debet_interests_account_181049429: 7925.17
+      total_net_intrest: 7925.17
+
+######################################################
+
+# UNIT 3: Credit account with a credit value
+
+######################################################
+
+### UPDATED CALCULATION - DAY ###
+
+# UNIT 3 - TEST 1: updated broken bookyear calculation - day - default credit values
+credit_acc_credit_value_default_broken_day:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: &accounts_blueprint
+          "110900":
+            value: -500.32
+          "111900":
+            value: -52653.38   
+          "489000":
+            id: 181049429
+            name: Rekening courant zaakvoerder
+            value: -185887.96
+            custom:
+              details.detail_1:
+                date: "01/07/2019"
+                title: "OPENING/OUVERTURE"
+                value: "-180821.63"
+              details.detail_2:
+                date: "25/07/2019"
+                title: "ELECTRABEL"
+                value: "107.64"
+              details.detail_3:
+                date: "25/08/2019"
+                title: "ELECTRABEL"
+                value: "215385.74"
+              details.detail_4:
+                date: "31/12/2019"
+                title: "Betaling Lunch Garden privé"
+                value: "-62.47"
+              details.detail_5:
+                date: "10/11/2019"
+                title: "ELECTRABEL"
+                value: "-221071.32"
+              details.detail_6:
+                date: "19/06/2020"
+                title: "Teruggave sociale bijdrage Liantis"
+                value: "248.59"
+              details.detail_7:
+                date: "30/06/2020"
+                title: "zout zwembad"
+                value: "325.49"
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom: &reconciliation_inputs_blueprint
+              accounts.numbers: "489000"
+              # Enable requalification check
+              checks.enable_requalification_and_thin_cap: false
+              checks.capital_accounts: "111900"
+              181049429.person_type: "natural_person"
+
+              # New calculation
+              checks.enable_broken_book_year: true
+
+              # Calculation type
+              181049429.manueel: "dag"
+
+              # Taxes
+              181049429.datum: "01/10/2020"
+              181049429.RV: "0.3"
+              181049429.geboekt: "0"
+
+  expectation: &expectation_blueprint
+    reconciled: true
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 640.44
+      total_credit_interests: 5942.18
+      total_debet_interests_account_181049429: 640.44
+      total_credit_interests_account_181049429: 5942.18
+      total_net_intrest: 3519.08
+
+# UNIT 3 - TEST 2: updated broken bookyear calculation - day - manually adjusted credit & debet value
+credit_acc_credit_value_manual_broken_day:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Manually adusted value
+              period_intrest_181049429_25_08_2019.bedrag: -50746.09
+              period_intrest_181049429_19_06_2020.bedrag: 190523.85
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 937.36
+      total_credit_interests: 5947.44
+      total_debet_interests_account_181049429: 937.36
+      total_credit_interests_account_181049429: 5947.44
+      total_net_intrest: 3225.85
+
+### UPDATED CALCULATION - MONTH ###
+
+# UNIT 3 - TEST 3: updated broken bookyear calculation - month - default credit values
+credit_acc_credit_value_default_broken_month:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "maand"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 507.36
+      total_credit_interests: 5224.4
+      total_debet_interests_account_181049429: 507.36
+      total_credit_interests_account_181049429: 5224.4
+      total_net_intrest: 3149.72
+
+# UNIT 3 - TEST 4: updated broken bookyear calculation - month - manually adjusted credit & debet value
+credit_acc_credit_value_manual_broken_month:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "maand"
+
+              # Manually adjusted values
+              juli_19__181049429.bedrag: -95357.00
+              januari_20__181049429.bedrag: 180527.87
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 1205.06
+      total_credit_interests: 4898.62
+      total_debet_interests_account_181049429: 1205.06
+      total_credit_interests_account_181049429: 4898.62
+      total_net_intrest: 2223.98
+
+### UPDATED CALCULATION - QUARTER ###
+
+# UNIT 3 - TEST 5: updated broken bookyear calculation - quarter - default credit values
+credit_acc_credit_value_default_broken_quarter:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "kwartaal"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      total_debet_interests: 380.52
+      total_credit_interests: 4552.6
+      total_debet_interests_account_181049429: 380.52
+      total_credit_interests_account_181049429: 4552.6
+      total_net_intrest: 2806.3
+
+# UNIT 3 - TEST 6: updated broken bookyear calculation - quarter - manually adjusted credit & debet value
+credit_acc_credit_value_manual_broken_quarter:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "kwartaal"
+
+              # Manually adjusted values
+              Q3-2019__181049429.bedrag: -95357.0
+              Q4-2019__181049429.bedrag: 180527.87
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 2093.09
+      total_credit_interests: 5614.62
+      total_debet_interests_account_181049429: 2093.09
+      total_credit_interests_account_181049429: 5614.62
+      total_net_intrest: 1837.15
+
+### UPDATED CALCULATION - YEAR ###
+
+# UNIT 3 - TEST 7: updated broken bookyear calculation - year - default credit values
+credit_acc_credit_value_default_broken_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "jaar"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_credit_interests: 5671.94 
+      total_credit_interests_account_181049429: 5671.94
+      total_net_intrest: 3970.36
+
+# UNIT 3 - TEST 8: updated broken bookyear calculation - year - manually adjusted credit & debet value
+credit_acc_credit_value_manual_broken_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Calculation type
+              181049429.manueel: "jaar"
+
+              # Manually adjusted values
+              31_12_2019__181049429.bedrag: 90263.94
+              30_06_2020__181049429.bedrag: -185207.92
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 9445.6
+      total_credit_interests: 1832.36
+      total_debet_interests_account_181049429: 9445.6
+      total_credit_interests_account_181049429: 1832.36
+      total_net_intrest: -8162.96
+
+### UPDATED CALCULATION - REQUALIFICATION ###
+
+# UNIT 3 - TEST 9: updated broken bookyear calculation - day - default credit values - requalification applied
+credit_acc_credit_value_default_broken_day_requalification:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Enable requalification check
+              checks.enable_requalification_and_thin_cap: true
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 640.44
+      total_credit_interests: 1687.99
+      total_debet_interests_account_181049429: 640.44
+      total_credit_interests_account_181049429: 1687.99
+      total_requalified_gross_dividend: 4254.19
+      total_net_intrest: 541.15
+
+# UNIT 3 - TEST 10: updated broken bookyear calculation - month - default credit values - requalification applied
+credit_acc_credit_value_default_broken_month_requalification:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Enable requalification check
+              checks.enable_requalification_and_thin_cap: true
+
+              # Calculation type
+              181049429.manueel: "maand"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 507.36
+      total_credit_interests: 1781.44
+      total_debet_interests_account_181049429: 507.36
+      total_credit_interests_account_181049429: 1781.44
+      total_requalified_gross_dividend: 3442.96
+      total_net_intrest: 739.65
+
+### UPDATED CALCULATION - EXCESSIVE INTEREST ###
+
+# UNIT 3 - TEST 11: updated broken bookyear calculation - day - default credit values - excessive interest applied
+credit_acc_credit_value_default_broken_day_excessive:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Enable requalification check
+              checks.capital_accounts: "110900"
+              checks.enable_requalification_and_thin_cap: true
+              181049429.person_type: "affiliated_legal_person"
+
+              # Calculation type
+              181049429.manueel: "dag"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 640.44
+      total_credit_interests: 5942.18
+      total_debet_interests_account_181049429: 640.44
+      total_credit_interests_account_181049429: 5942.18
+      total_excessive_intrest: 5861.99
+      total_net_intrest: 3519.08
+
+# UNIT 3 - TEST 12: updated broken bookyear calculation - month - default credit values - excessive interest applied
+credit_acc_credit_value_default_broken_month_excessive:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Enable requalification check
+              checks.capital_accounts: "110900"
+              checks.enable_requalification_and_thin_cap: true
+              181049429.person_type: "affiliated_legal_person"
+
+              # Calculation type
+              181049429.manueel: "maand"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 507.36
+      total_credit_interests: 5224.4
+      total_debet_interests_account_181049429: 507.36
+      total_credit_interests_account_181049429: 5224.4
+      total_excessive_intrest: 5139.76
+      total_net_intrest: 3149.72
+
+### OLD CALCULATION - DAY ###
+
+# UNIT 3 - TEST 13: old broken bookyear calculation - day - default credit values
+credit_acc_credit_value_default_old_day:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "dag"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 642.2
+      total_credit_interests: 5958.46
+      total_debet_interests_account_181049429: 642.2
+      total_credit_interests_account_181049429: 5958.46
+      total_net_intrest: 3528.73
+
+# UNIT 3 - TEST 14: old broken bookyear calculation - day - manually adjusted credit & debet value
+credit_acc_credit_value_manual_old_day:
+
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "dag"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+              # Manually adusted value
+              period_intrest_181049429_01_07_2019.bedrag: -94108.15
+              period_intrest_181049429_19_06_2020.bedrag: 180213.45
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 1185.5
+      total_credit_interests: 5468.4
+      total_debet_interests_account_181049429: 1185.5
+      total_credit_interests_account_181049429: 5468.4
+      total_net_intrest: 2642.39
+
+### OLD CALCULATION - MONTH ###
+
+# UNIT 3 - TEST 15: old broken bookyear calculation - month - default credit values
+credit_acc_credit_value_default_old_month:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "maand"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 507.36
+      total_credit_interests: 5224.4
+      total_debet_interests_account_181049429: 507.36
+      total_credit_interests_account_181049429: 5224.4
+      total_net_intrest: 3149.72
+
+# UNIT 3 - TEST 16: old broken bookyear calculation - month - manually adjusted credit & debet value
+credit_acc_credit_value_manual_old_month:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "maand"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+              september_19__181049429.bedrag: "60394.10"
+              februari_20__181049429.bedrag: "-30789.65"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 478.96
+      total_credit_interests: 4797.87
+      total_debet_interests_account_181049429: 478.96
+      total_credit_interests_account_181049429: 4797.87
+      total_net_intrest: 2879.55
+
+### OLD CALCULATION - QUARTER ###
+
+# UNIT 3 - TEST 17: old broken bookyear calculation - quarter - default credit values
+credit_acc_credit_value_default_old_quarter:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "kwartaal"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 380.52
+      total_credit_interests: 4552.6
+      total_debet_interests_account_181049429: 380.52
+      total_credit_interests_account_181049429: 4552.6
+      total_net_intrest: 2806.3
+
+# UNIT 3 - TEST 18: old broken bookyear calculation - quarter - manually adjusted credit & debet value
+credit_acc_credit_value_manual_old_quarter: 
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "kwartaal"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+              Q3-2019__181049429.bedrag: "-95357.0"
+              Q4-2019__181049429.bedrag: "180527.87"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 2093.09
+      total_credit_interests: 5614.62
+      total_debet_interests_account_181049429: 2093.09
+      total_credit_interests_account_181049429: 5614.62
+      total_net_intrest: 1837.15
+
+### OLD CALCULATION - YEAR ###
+
+# UNIT 3 - TEST 19: old broken bookyear calculation - year - default credit values
+credit_acc_credit_value_default_old_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "jaar"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_credit_interests: 3773.53
+      total_credit_interests_account_181049429: 3773.53
+      total_net_intrest: 2641.47
+
+# UNIT 3 - TEST 20: old broken bookyear calculation - year - manually adjusted credit value
+credit_acc_credit_value_manual_credit_old_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "jaar"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+              181049429.bedrag: 93943.98
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_credit_interests: 3814.13
+      total_credit_interests_account_181049429: 3814.13
+      total_net_intrest: 2669.89
+
+# UNIT 3 - TEST 21: old broken bookyear calculation - year - manually adjusted debet value
+credit_acc_credit_value_manual_debet_old_year:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # New calculation
+              checks.enable_broken_book_year: false
+
+              # Calculation type
+              181049429.manueel: "jaar"
+
+              # Manually adjusted values
+              181049429.creditrate: "0.0406"
+              181049429.debetrate: "0.0878"
+              181049429.bedrag: -83943.98
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 7370.28
+      total_debet_interests_account_181049429: 7370.28
+      total_net_intrest: -7370.28
+
+### OLD CALCULATION - REQUALIFICATION ###
+
+# UNIT 3 - TEST 22: old broken bookyear calculation - day - default credit values - requalification applied
+credit_acc_credit_value_default_old_day_requalification:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Enable requalification check
+              checks.enable_requalification_and_thin_cap: true
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 640.44
+      total_credit_interests: 1687.99
+      total_debet_interests_account_181049429: 640.44
+      total_credit_interests_account_181049429: 1687.99
+      total_requalified_gross_dividend: 4254.19
+      total_net_intrest: 541.15
+
+# UNIT 3 - TEST 23: old broken bookyear calculation - month - default credit values - requalification applied
+credit_acc_credit_value_default_old_month_requalification:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Enable requalification check
+              checks.enable_requalification_and_thin_cap: true
+
+              # Calculation type
+              181049429.manueel: "maand"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      total_debet_interests: 507.36
+      total_credit_interests: 1781.44
+      total_debet_interests_account_181049429: 507.36
+      total_credit_interests_account_181049429: 1781.44
+      total_requalified_gross_dividend: 3442.96
+      total_net_intrest: 739.65
+
+### OLD CALCULATION - EXCESSIVE INTEREST ###
+
+# UNIT 3 - TEST 24: old broken bookyear calculation - day - default credit values - excessive interest applied
+credit_acc_credit_value_default_old_day_excessive:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Enable requalification check
+              checks.capital_accounts: "110900"
+              checks.enable_requalification_and_thin_cap: true
+              181049429.person_type: "affiliated_legal_person"
+
+              # Calculation type
+              181049429.manueel: "dag"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 640.44
+      total_credit_interests: 5942.18
+      total_debet_interests_account_181049429: 640.44
+      total_credit_interests_account_181049429: 5942.18
+      total_excessive_intrest: 5861.99
+      total_net_intrest: 3519.08
+
+# UNIT 3 - TEST 25: old broken bookyear calculation - month - default credit values - excessive interest applied
+credit_acc_credit_value_default_old_month_excessive:
+  <<: *unit_blueprint
+
+  data:
+    company: *company_blueprint
+
+    periods:
+      2020-06-30:
+        accounts: *accounts_blueprint
+        reconciliations:
+          intrestberekening:
+            starred: true
+            custom:
+              <<: *reconciliation_inputs_blueprint
+              # Enable requalification check
+              checks.capital_accounts: "110900"
+              checks.enable_requalification_and_thin_cap: true
+              181049429.person_type: "affiliated_legal_person"
+
+              # Calculation type
+              181049429.manueel: "maand"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      <<: *results_blueprint
+      total_debet_interests: 507.36
+      total_credit_interests: 5224.4
+      total_debet_interests_account_181049429: 507.36
+      total_credit_interests_account_181049429: 5224.4
+      total_excessive_intrest: 5139.76
+      total_net_intrest: 3149.72
