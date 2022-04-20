@@ -42,7 +42,7 @@ Description: Testing of fori items by which the user can add deductiblle gifts, 
 
 *Scenario 1: "Fail" 2x2 items, equity method == true*
 
-*Scenario 2: "Success" 2x2 items, equity method == false*
+Scenario 2: "Success" 2x2 items, equity method == false
 
 Scenario 3: "Success" 2x2 items, equity method == true
 

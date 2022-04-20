@@ -627,7 +627,7 @@ unit_1_incoming_result_test_3:
     results:
       result_cy_a_priori: 136480
       approval: true
-      approval_date: 19/04/2022
+      approval_date: 20/04/2022
       approval_name: null
       data_included: true
       total_deductible: 9400.0
@@ -669,9 +669,9 @@ unit_2_fori_items_test_1:
     rollforward:
       check.approval: null
     results:
-      approval: true
+      approval: false
       approval_name: null
-      approval_date: "20/04/2022"
+      approval_date: null
       result_cy_a_priori: 124689.0
       total_deductible: 9400.0
       data_included: true
