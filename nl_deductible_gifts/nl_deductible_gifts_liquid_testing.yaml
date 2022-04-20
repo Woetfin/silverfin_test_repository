@@ -1,7 +1,7 @@
+# unit 0 empty state
 unit_0_empty_state:
   context:
     period: 2021-12-31
-    locale: 'en'
   data:
     periods:
       2021-12-31:
@@ -18,10 +18,10 @@ unit_0_empty_state:
     rollforward:
       check.approval: null
 
+# Unit 1 incoming result
 unit_1_incoming_result_test_1:
   context:
     period: 2021-12-31
-    locale: 'en'
   data:
     periods:
       2021-12-31:
@@ -34,7 +34,7 @@ unit_1_incoming_result_test_1:
             value: 4000
         reconciliations:
           nl_tax_status:
-            custom: 
+            custom:
               equity.method: false
   expectation:
     reconciled: false
@@ -44,6 +44,7 @@ unit_1_incoming_result_test_1:
     rollforward:
       check.approval: null
 
+# Unit 2 fori items:
 unit_2_fori_items_test_1:
   context:
     period: 2021-12-31
@@ -54,11 +55,8 @@ unit_2_fori_items_test_1:
           WOvbBue.001:
             value: -124689
         reconciliations:
-          nl_tax_status:
-            custom: 
-              equity.method: false
           nl_deductible_gifts:
-            custom:
+            custom: &custom_fori_items_bp
               cult_gifts.cult_gift_1:
                 amount: "500.0"
                 description: "First item"
@@ -71,8 +69,9 @@ unit_2_fori_items_test_1:
               oth_gifts.oth_gift_2:
                 amount: "4200.0"
                 description: "Charitable donation (2)"
-              total_gifts.in_admin: false
-              check.approval: false
+          nl_tax_status:
+            custom:
+              equity.method: false
   expectation:
     reconciled: false
     rollforward:
