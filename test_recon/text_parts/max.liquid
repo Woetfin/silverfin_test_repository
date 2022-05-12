@@ -1,0 +1,6 @@
+{% assign max_value = 20 %}
+{% if check < max_value %}{% assign check_max  = "lower" %}{% else %}{% assign check_max  = "higher" %}{% endif %}
+
+{{ check }} is {{ check_max }} than the max_value value ({{ max_value }})
+
+{% result 'check_max' check_max %}

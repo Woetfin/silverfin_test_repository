@@ -1,0 +1,18 @@
+{
+  "name": "silverfin_test_repository",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/Woetfin/silverfin_test_repository",
+  "author": "Woet",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "new-recon": "./node_modules/sf_toolkit/bin/cli.js new",
+    "import-recon": "./node_modules/sf_toolkit/bin/cli.js import",
+    "update-recon": "./node_modules/sf_toolkit/bin/cli.js persistReconciliationText"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.1",
+    "sf_toolkit": "https://github.com/GetSilverfin/sf-toolkit.git"
+  }
+}

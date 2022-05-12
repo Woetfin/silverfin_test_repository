@@ -1,0 +1,12 @@
+{
+  "name": "Repository Test EN",
+  "name_en": "Repository Test EN",
+  "auto_hide_formula": "if hide == true",
+  "text_configuration": null,
+  "text": "text.liquid",
+  "text_parts": {
+    "part_1": "text_parts/part_1.liquid",
+    "part_2": "text_parts/part_2.liquid"
+  },
+  "test": "tests/test.yml"
+}
