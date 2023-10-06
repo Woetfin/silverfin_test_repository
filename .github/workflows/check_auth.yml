@@ -21,12 +21,12 @@ jobs:
           value: 'true'
           pa_token: ${{ secrets.REPO_ACCESS_TOKEN }}
       - name: Setup Node v18
-        if: env.REFRESH_RUNNING == 'true
+        if: env.REFRESH_RUNNING == 'true'
         uses: actions/setup-node@v3
         with:
           node-version: 18
       - name: Add silverfin-cli package latest version
-        if: env.REFRESH_RUNNING == 'true
+        if: env.REFRESH_RUNNING == 'true'
         run: |
           npm install https://github.com/silverfin/silverfin-cli.git
           VERSION=$(./node_modules/silverfin-cli/bin/cli.js -V)
