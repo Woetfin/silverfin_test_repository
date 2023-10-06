@@ -32,7 +32,8 @@ jobs:
           REFRESH_RUNNING=$(echo $CONFIG_JSON | jq -r '.refreshRunning // empty')
           # If no refreshRunning property is found, create it OR if refreshRunning property is found and false, in both cases, set the refreshRunning property to true and run refresh process
           if [ -z "$REFRESH_RUNNING" ] || [ "$REFRESH_RUNNING" = "false" ]; then
-            echo "No refresh running"
+            echo "No refresh process running, starting it"
+            echo "The value of refreshRunning is: $REFRESH_RUNNING"
             echo "::set-output name=run-refresh::true"
             CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = true')
           else
