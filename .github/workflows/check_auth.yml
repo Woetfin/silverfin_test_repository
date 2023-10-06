@@ -33,9 +33,9 @@ jobs:
           # If no refreshRunning property is found, create it OR if refreshRunning property is found and false, in both cases, set the refreshRunning property to true and run refresh process
           if [ -z "$REFRESH_RUNNING" ] || [ "$REFRESH_RUNNING" = "false" ]; then
             echo "No refresh process running, starting it"
+            CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = true')
             echo "The value of refreshRunning is: $REFRESH_RUNNING"
             echo "run-refresh=true" >> $GITHUB_OUTPUT
-            CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = true')
           else
             # Refresh process is already running, do nothing
             echo "Refresh process already running"
@@ -45,6 +45,7 @@ jobs:
         run: |
           CONFIG_JSON=$(cat $HOME/.silverfin/config.json | jq '.refreshRunning = ${{ steps.check-refresh.outputs.run-refresh }} | . ' | tr -d '\n' )
           REFRESH_RUNNING=$(echo $CONFIG_JSON | jq '.refreshRunning')
+          echo "$CONFIG_JSON"
           echo "The value of refreshRunning is: $REFRESH_RUNNING"
           echo "CONFIG_JSON=${CONFIG_JSON}" >> $GITHUB_ENV
       - name: Update CONFIG_JSON with refreshRunning property in secrets
