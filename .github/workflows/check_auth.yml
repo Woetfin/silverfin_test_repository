@@ -56,7 +56,7 @@ jobs:
       - name: Refresh token
         if: steps.check-refresh.outputs.run-refresh == 'true'
         run: |
-          CONFIG_JSON=$(env CONFIG_JSON)
+          CONFIG_JSON=$(cat $HOME/.silverfin/config.json)
           for FIRM_ID in $(echo $CONFIG_JSON | jq 'del(.defaultFirmIDs) | del(.refreshRunning) | keys[]'); do
             echo "Refreshing token for firm $FIRM_ID"
             node ./node_modules/silverfin-cli/bin/cli.js config --set-firm $FIRM_ID
