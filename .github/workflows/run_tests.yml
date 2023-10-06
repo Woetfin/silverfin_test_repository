@@ -60,7 +60,7 @@ jobs:
           # Remove duplicated
           changed_templates=($(printf "%s\n" "${filtered_names[@]}" | sort -u))
           # Store outputs
-          echo "::set-output name=changed_templates::${changed_templates[*]}"
+          echo "changed_templates=${changed_templates[*]}" >> $GITHUB_OUTPUT
           # Print the templates names
           for name in "${changed_templates[@]}"; do
             echo "$name"
