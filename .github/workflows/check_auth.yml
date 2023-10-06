@@ -29,8 +29,9 @@ jobs:
         id: check-refresh
         run: |
           CONFIG_JSON=$(cat $HOME/.silverfin/config.json)
+          REFRESH_RUNNING=$(echo $CONFIG_JSON | jq '.refreshRunning')
           # If no refreshRunning property is found, create it OR if refreshRunning property is found and false, in both cases, set the refreshRunning property to true and run refresh process
-          if echo $CONFIG_JSON | jq '.refreshRunning' > /dev/null || echo $CONFIG_JSON | jq '.refreshRunning == false' > /dev/null; then
+          if echo $REFRESH_RUNNING > /dev/null || echo $REFRESH_RUNNING == false > /dev/null; then
             echo "Refresh process not running yet, starting it"
             CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = true')
             REFRESH_RUNNING=$(echo $CONFIG_JSON | jq '.refreshRunning')
@@ -43,7 +44,7 @@ jobs:
           fi
       - name: Prepare CONFIG_JSON to store updated refreshRunning property
         run: |
-          CONFIG_JSON=$(cat $HOME/.silverfin/config.json | jq '.refreshRunning = ${{ steps.check-refresh.outputs.run-refresh }}'  | tr -d '\n' )
+          CONFIG_JSON=$(cat $HOME/.silverfin/config.json | jq '.refreshRunning = ${{ steps.check-refresh.outputs.run-refresh }}' | tr -d '\n' )
           REFRESH_RUNNING=$(echo $CONFIG_JSON | jq '.refreshRunning')
           echo "The value of refreshRunning is: $REFRESH_RUNNING"
           echo "CONFIG_JSON=${CONFIG_JSON}" >> $GITHUB_ENV
