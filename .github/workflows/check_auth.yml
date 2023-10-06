@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Update REFRESH_RUNNING environment variable state
         uses: gliech/create-github-secret-action@v1
-        if: env.REFRESH_RUNNING == 'true'
+        if: env.REFRESH_RUNNING == 'false'
         with:
           name: REFRESH_RUNNING
           value: 'true'
