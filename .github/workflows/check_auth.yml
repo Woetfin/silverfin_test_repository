@@ -34,12 +34,12 @@ jobs:
           if [ -z "$REFRESH_RUNNING" ] || [ "$REFRESH_RUNNING" = "false" ]; then
             echo "No refresh process running, starting it"
             echo "The value of refreshRunning is: $REFRESH_RUNNING"
-            echo "::set-output name=run-refresh::true"
+            echo "run-refresh=true" >> $GITHUB_OUTPUT
             CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = true')
           else
             # Refresh process is already running, do nothing
             echo "Refresh process already running"
-            echo "::set-output name=run-refresh::false"
+            echo "run-refresh=false" >> $GITHUB_OUTPUT
           fi
       - name: Prepare CONFIG_JSON to store updated refreshRunning property
         run: |
