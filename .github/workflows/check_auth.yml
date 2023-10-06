@@ -12,7 +12,7 @@ jobs:
     outputs:
       tokens-updated: ${{ steps.update-config.outputs.tokens-updated }}
     steps:
-      - name: Update REFRESH_RUNNING environment variable state
+      - name: Set REFRESH_RUNNING to true
         uses: gliech/create-github-secret-action@v1
         if: env.REFRESH_RUNNING == 'false'
         with:
@@ -83,4 +83,11 @@ jobs:
         with:
           name: CONFIG_JSON
           value: "${CONFIG_JSON}"
+          pa_token: ${{ secrets.REPO_ACCESS_TOKEN }}
+      - name: Set REFRESH_RUNNING to false
+        uses: gliech/create-github-secret-action@v1
+        if: always()
+        with:
+          name: REFRESH_RUNNING
+          value: 'false'
           pa_token: ${{ secrets.REPO_ACCESS_TOKEN }}
