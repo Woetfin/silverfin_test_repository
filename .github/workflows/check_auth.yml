@@ -20,9 +20,10 @@ jobs:
           value: 'true'
           pa_token: ${{ secrets.REPO_ACCESS_TOKEN }}
       - name: Get current value of REFRESH_RUNNING environment variable
-        if: env.REFRESH_RUNNING == 'false'
+        if: env.REFRESH_RUNNING == 'true'
         run: |
           echo "REFRESH_RUNNING=true" >> $GITHUB_ENV
+          echo "refresh running is ${REFRESH_RUNNING}"
       - name: Setup Node v18
         if: env.REFRESH_RUNNING == 'true'
         uses: actions/setup-node@v3
