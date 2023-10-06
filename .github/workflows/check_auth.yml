@@ -20,14 +20,44 @@ jobs:
           VERSION=$(./node_modules/silverfin-cli/bin/cli.js -V)
           echo "CLI version: ${VERSION}"
       - name: Load Silverfin config file from secrets
+        id: silverfin-config
         run: |
           mkdir -p $HOME/.silverfin/
           touch $HOME/.silverfin/config.json
-          echo '${{ secrets.CONFIG_JSON }}' > $HOME/.silverfin/config.json
-      - name: Refresh token
+          echo '${{ secrets.CONFIG_JSON }}' > \$HOME/.silverfin/config.json
+      - name: Check if refresh process is already running
+        id: check-refresh
         run: |
-          node ./node_modules/silverfin-cli/bin/cli.js config --set-firm 13827
-          node ./node_modules/silverfin-cli/bin/cli.js config --refresh-token
+          CONFIG_JSON=$(cat $HOME/.silverfin/config.json)
+          # If no refreshRunning property is found, create it OR if refreshRunning property is found and false, in both cases, set the refreshRunning property to true and run refresh process
+          if echo $CONFIG_JSON | jq '.refreshRunning' > /dev/null || echo $CONFIG_JSON | jq '.refreshRunning == false' > /dev/null; then
+            echo "Refresh process not running yet, starting it"
+            CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = true')
+            echo "::set-output name=run-refresh::true"
+          else
+            # Refresh process is already running, do nothing
+            echo "Refresh process already running"
+            echo "::set-output name=run-refresh::false"
+          fi
+      - name: Prepare CONFIG_JSON to store updated refreshRunning property
+        run: |
+          CONFIG_JSON=$(cat $HOME/.silverfin/config.json | tr -d '\n')
+          echo "CONFIG_JSON=${CONFIG_JSON}" >> $GITHUB_ENV
+      - name: Update CONFIG_JSON with refreshRunning property in secrets
+        uses: gliech/create-github-secret-action@v1
+        with:
+          name: CONFIG_JSON
+          value: "${{ env.CONFIG_JSON }}"
+          pa_token: ${{ secrets.REPO_ACCESS_TOKEN }}
+      - name: Refresh token
+        if: steps.check-refresh.outputs.run-refresh == 'true'
+        run: |
+          CONFIG_JSON=$(cat $HOME/.silverfin/config.json)
+          for FIRM_ID in $(echo $CONFIG_JSON | jq 'keys[]'); do
+            echo "Refreshing token for firm $FIRM_ID"
+            node ./node_modules/silverfin-cli/bin/cli.js config --set-firm $FIRM_ID
+            node ./node_modules/silverfin-cli/bin/cli.js config --refresh-token
+          done
       - name: Prepare CONFIG_JSON to be stored as a secret
         if: always()
         run: |
