@@ -24,7 +24,7 @@ jobs:
         run: |
           mkdir -p $HOME/.silverfin/
           touch $HOME/.silverfin/config.json
-          echo '${{ secrets.CONFIG_JSON }}' > \$HOME/.silverfin/config.json
+          echo '${{ secrets.CONFIG_JSON }}' > $HOME/.silverfin/config.json
       - name: Check if refresh process is already running
         id: check-refresh
         run: |
