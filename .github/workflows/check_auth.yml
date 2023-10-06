@@ -12,6 +12,22 @@ jobs:
     outputs:
       tokens-updated: ${{ steps.update-config.outputs.tokens-updated }}
     steps:
+      - name: Update REFRESH_RUNNING environment variable state
+        uses: actions/github-script@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: { id } } = await github.actions.getRepoEnvironmentVariable({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              environment_variable_name: 'REFRESH_RUNNING'
+            });
+            await github.actions.updateRepoEnvironmentVariable({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              environment_variable_id: id,
+              value: true
+            }); 
       - name: Setup Node v18
         uses: actions/setup-node@v3
         with:
@@ -30,11 +46,11 @@ jobs:
         id: check-refresh
         run: |
           CONFIG_JSON=$(cat $HOME/.silverfin/config.json)
-          REFRESH_RUNNING=$(echo $CONFIG_JSON | jq -r '.refreshRunning')
+          REFRESH_RUNNING=$(echo $CONFIG_JSON | jq -r '.refreshRunning' // "false")
           # If no refreshRunning property is found, create it OR if refreshRunning property is found and false, in both cases, set the refreshRunning property to true and run refresh process
           if [ -z "$REFRESH_RUNNING" ] || [ "$REFRESH_RUNNING" = "false" ]; then
             echo "No refresh process running, starting it"
-            CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = true')
+            CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = "true"')
             echo "$CONFIG_JSON" > $HOME/.silverfin/config.json
             echo "run-refresh=true" >> $GITHUB_OUTPUT
           else
