@@ -25,18 +25,15 @@ jobs:
           mkdir -p $HOME/.silverfin/
           touch $HOME/.silverfin/config.json
           echo '${{ secrets.CONFIG_JSON }}' > $HOME/.silverfin/config.json
-          echo "CONFIG_JSON=${{ secrets.CONFIG_JSON }}" >> $GITHUB_ENV
       - name: Check if refresh process is already running
         id: check-refresh
         run: |
-          CONFIG_JSON=$(env CONFIG_JSON)
-          REFRESH_RUNNING=$(echo $CONFIG_JSON | jq -r '.refreshRunning // false')
-          echo "The value of refreshRunning is: $REFRESH_RUNNING"
+          CONFIG_JSON=$(cat $HOME/.silverfin/config.json)
           # If no refreshRunning property is found, create it OR if refreshRunning property is found and false, in both cases, set the refreshRunning property to true and run refresh process
           if [ -z "$REFRESH_RUNNING" ] || [ "$REFRESH_RUNNING" = "false" ]; then
             echo "No refresh process running, starting it"
-            CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = true') > $HOME/.silverfin/config.json >> $GITHUB_ENV
-            echo "The value of refreshRunning is: $REFRESH_RUNNING"
+            CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = "true"')
+            echo "$CONFIG_JSON" > $HOME/.silverfin/config.json
             echo "run-refresh=true" >> $GITHUB_OUTPUT
           else
             # Refresh process is already running, do nothing
@@ -45,10 +42,11 @@ jobs:
           fi
       - name: Prepare CONFIG_JSON to store updated refreshRunning property
         run: |
-          CONFIG_JSON=$(env CONFIG_JSON | tr -d '\n' )
-          REFRESH_RUNNING=$(echo $CONFIG_JSON | jq -r '.refreshRunning)
+          CONFIG_JSON=$(cat $HOME/.silverfin/config.json)
+          CONFIG_JSON=$($CONFIG_JSON | tr -d '\n' )
+          echo "$CONFIG_JSON" > $HOME/.silverfin/config.json
+          REFRESH_RUNNING=$(echo $CONFIG_JSON | jq -r '.refreshRunning')
           echo "The value of refreshRunning is: $REFRESH_RUNNING"
-          echo "CONFIG_JSON=${CONFIG_JSON}" >> $GITHUB_ENV
       - name: Update CONFIG_JSON with refreshRunning property in secrets
         uses: gliech/create-github-secret-action@v1
         with:
