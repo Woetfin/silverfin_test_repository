@@ -12,6 +12,10 @@ jobs:
     outputs:
       tokens-updated: ${{ steps.update-config.outputs.tokens-updated }}
     steps:
+      - name: Setup Node v18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
       - name: Update REFRESH_RUNNING environment variable state
         uses: actions/github-script@v5
         with:
@@ -28,10 +32,6 @@ jobs:
               environment_variable_id: id,
               value: true
             }); 
-      - name: Setup Node v18
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
       - name: Add silverfin-cli package latest version
         run: |
           npm install https://github.com/silverfin/silverfin-cli.git
