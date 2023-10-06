@@ -11,7 +11,7 @@ on:
 permissions:
   contents: read
 jobs:
-  refresh-auth:
+  check-auth:
     uses: ./.github/workflows/check_auth.yml
     secrets: inherit
   test-templates:
