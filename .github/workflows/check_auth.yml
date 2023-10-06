@@ -7,7 +7,6 @@ jobs:
     env:
       SF_API_CLIENT_ID: "${{ secrets.SF_API_CLIENT_ID }}"
       SF_API_SECRET: "${{ secrets.SF_API_SECRET }}"
-      GITHUB_OUTPUT: ${{ github.workspace }}/output.txt
       CONFIG_JSON: ${{ secrets.CONFIG_JSON }}
       REFRESH_RUNNING: ${{ secrets.REFRESH_RUNNING }}
     outputs:
@@ -20,13 +19,17 @@ jobs:
           name: REFRESH_RUNNING
           value: 'true'
           pa_token: ${{ secrets.REPO_ACCESS_TOKEN }}
+      - name: Get current value of REFRESH_RUNNING environment variable
+        if: env.REFRESH_RUNNING == 'false'
+        run: |
+          echo "REFRESH_RUNNING=true" >> $GITHUB_ENV
       - name: Setup Node v18
         if: env.REFRESH_RUNNING == 'true'
         uses: actions/setup-node@v3
         with:
           node-version: 18
       - name: Add silverfin-cli package latest version
-        if: env.REFRESH_RUNNING == 'true'
+        if: ${{ env.REFRESH_RUNNING == 'true' }}
         run: |
           npm install https://github.com/silverfin/silverfin-cli.git
           VERSION=$(./node_modules/silverfin-cli/bin/cli.js -V)
