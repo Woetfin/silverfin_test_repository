@@ -1,8 +1,0 @@
-{
-  "text": "text.liquid",
-  "text_parts": {
-    "part_1": "text_parts/part_1.liquid"
-  },
-  "test": "tests/test.yml",
-  "name_en": ""
-}
