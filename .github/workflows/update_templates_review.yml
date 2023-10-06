@@ -21,9 +21,13 @@ jobs:
         uses: DanielTamkin/HasLabel@v1.0.4
         with:
           contains: "2-functional-review"
+  
+  run-tests:
+    uses: ./.github/workflows/run_tests.yml
+    secrets: inherit
 
   update-templates-for-functional-review:
-    needs: check-functional-review-label
+    needs: [check-functional-review-label, run-tests]
     if: needs.check-functional-review-label.outputs.has_functional_review_label
     runs-on: ubuntu-latest
     env:

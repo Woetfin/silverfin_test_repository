@@ -10,12 +10,18 @@ on:
 permissions:
   contents: read
 jobs:
+  run-tests:
+    uses: ./.github/workflows/run_tests.yml
+    secrets: inherit
+
   update-templates-in-production:
     if: github.event.pull_request.merged == true
+    needs: run-tests
     runs-on: ubuntu-latest
     env:
       SF_API_CLIENT_ID: "${{ secrets.SF_API_CLIENT_ID }}"
       SF_API_SECRET: "${{ secrets.SF_API_SECRET }}"
+      
     steps:
       - name: Checkout Repository - Fetch all history for all tags and branches
         uses: actions/checkout@v3

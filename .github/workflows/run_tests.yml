@@ -1,6 +1,8 @@
 name: run-liquid-tests
 run-name: Run liquid tests of updated reconciliations and reconciliations that use updated shared parts
-on:
+on: 
+  workflow_call:
+
   pull_request:
     branches:
       - "*"
@@ -19,6 +21,7 @@ jobs:
     env:
       SF_API_CLIENT_ID: "${{ secrets.SF_API_CLIENT_ID }}"
       SF_API_SECRET: "${{ secrets.SF_API_SECRET }}"
+    needs: check-auth
     steps:
       - name: Checkout Repository - Fetch all history for all tags and branches
         uses: actions/checkout@v3
