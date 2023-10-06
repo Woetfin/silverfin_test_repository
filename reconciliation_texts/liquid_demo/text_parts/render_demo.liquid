@@ -1,0 +1,7 @@
+{% input custom.test.value as:currency %}
+
+{{ period.accounts }}
+
+{% comment %}Caveats: no variables can be overwritten / exported outside the part, no results, no rollforward, no custom drops{% endcomment %}
+{% assign unchanged = "I'm overwritten!" %}
+{% result "result_from_render_part" "I don't exist!" %}

@@ -1,0 +1,277 @@
+validate_mapping_list:
+  context: &context_blueprint
+    period: 2021-12-31
+    configuration: |
+      {% assign validate_mapping_list = true %}
+  data:
+    periods:
+      2021-12-31:
+        account_mapping_list:
+          name: "blah"
+          id: 123
+          marketplace_template_id: 456
+
+  expectation: &expectation_blueprint
+    reconciled: false
+    results:
+      mapping_name: "blah"
+      mapping_id: 123
+      mapping_marketplace_template_id: 456
+      logic_on_marketplace_mapping_list: true
+
+validate_account_drop:
+  context:
+    <<: *context_blueprint
+    show_original_accounts_in_reconciliations: true
+    configuration: |
+      {% assign validate_account_drop = true %}
+
+  data:
+    periods:
+      2021-12-31:
+        accounts: &accounts_blueprint
+          221009:
+            value: -1000
+            starred: false
+            name: "Buildings - depreciations"
+            mapped_number: "221009.000"
+            results:
+              acc_example_result: "testing"
+          221000:
+            value: 1000
+            starred: true
+            name: "Buildings"
+            mapped_number: "221000.000"
+            results:
+              acc_example_result: "whatevs"
+          173000:
+            value: -1000
+            starred: false
+            name: "Debt - long term"
+            mapped_number: "173000.000"
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      starred_account_name: "Buildings"
+      starred_account_number: "221000"
+      starred_account_original_number: "221000"
+      starred_account_mapped_number: "221000.000"
+      starred_account_result: "whatevs"
+
+validate_person_drop:
+  context:
+    <<: *context_blueprint
+    configuration: |
+      {% assign validate_person_drop = true %}
+
+  data:
+    periods:
+      2021-12-31:
+        people:
+          legal_person: # external_id
+            name: "Woopedidoopedie"
+            director: true
+            director_start_date: 2016-01-01
+            director_end_date: 2023-12-31
+            payload: {}
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      director_start_date_external-legal_person: 2016-01-01
+      director_end_date_external-legal_person: 2023-12-31
+
+validate_adjustments_drop:
+  context:
+    <<: *context_blueprint
+    configuration: |
+      {% assign validate_adjustment_drop = true %}
+
+  data: 
+    periods:
+      2021-12-31:
+        accounts: 
+          <<: *accounts_blueprint
+        adjustments:
+          internal:
+            100: # uuid should be a positive integer
+              transactions:
+                test_1: # NOTE should be unique 
+                  value: 100
+                  account: 221000
+                test_2:
+                  value: -100
+                  account: 173000
+              purpose: testing
+              type: null
+          external:
+            200:
+              transactions:
+                test_1: # NOTE should be unique 
+                  value: 100
+                  account: 221000
+                test_2:
+                  value: -100
+                  account: 173000
+              purpose: testing
+              type: null
+            300:
+              transactions:
+                test_1: # NOTE should be unique 
+                  value: 300
+                  account: 221000
+                test_2:
+                  value: -100
+                  account: 173000
+                test_3:
+                  value: -200
+                  account: 221009
+              purpose: testing
+              type: null
+
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      internal_100: internal_100
+      external_200: external_200
+      external_300: external_300
+      internal_100_1_number: "221000"
+      internal_100_1_value: 100
+      internal_100_2_number: "173000"
+      internal_100_2_value: -100
+      external_200_1_number: "221000"
+      external_200_1_value: 100
+      external_200_2_number: "173000"
+      external_200_2_value: -100
+      external_300_1_number: "221000"
+      external_300_1_value: 300
+      external_300_2_number: "173000"
+      external_300_2_value: -100
+      external_300_3_number: "221009"
+      external_300_3_value: -200
+
+validate_report_results:
+  context:
+    <<: *context_blueprint
+    configuration: |
+      {% assign validate_report_results = true %}
+  
+  data:
+    periods:
+      2021-12-31:
+        reports:
+          balance_sheet_and_result:
+            name: "Balans + Resultaat + Verwerking"
+            results:
+              fixed_assets: 1000
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      fixed_assets_from_report: 1000
+
+validate_company_locales:
+  context:
+    <<: *context_blueprint
+    configuration: |
+      {% assign validate_company_locales = true %}
+  
+  data:
+    company:
+      locales: ["nl", "fr"]
+    periods:
+      2021-12-31:
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      company_locales: ["nl", "fr"]
+
+validate_locked_mapped_number:
+  context:
+    <<: *context_blueprint
+    configuration: |
+      {% assign validate_locked_mapped_number = true %}
+  
+  data:
+    periods:
+      2021-12-31:
+        accounts:
+          221000:
+            value: 1000
+            starred: true
+            name: "Buildings"
+            mapped_number: "221000.000"
+      2022-12-31:
+        accounts:
+          221000: 
+            value: 1000
+            starred: true
+            name: "Buildings"
+            mapped_number: "221001.000"
+
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      first_mapped_number: "221000.000"
+
+validate_locked_mapped_number_2022:
+  context:
+    period: 2022-12-31
+    configuration: |
+      {% assign validate_locked_mapped_number = true %}
+  
+  data:
+    periods:
+      2021-12-31:
+        accounts:
+          221000:
+            value: 1000
+            starred: true
+            name: "Buildings"
+            mapped_number: "221000.000"
+      2022-12-31:
+        accounts:
+          221000: 
+            value: 1000
+            starred: true
+            name: "Buildings"
+            mapped_number: "221001.000"
+
+
+  expectation:
+    <<: *expectation_blueprint
+    results:
+      first_mapped_number: "221001.000"
+
+validate_analytical_company_type:
+  context:
+    period: 2024-12-31
+    
+  data:
+    company:
+      name: "Company Type"
+    periods:
+      2024-12-31:
+        accounts:
+          10000:
+            value: 0
+            name: "Equity"
+        
+    analytical_dimensions:
+      1:
+        silverfin:
+          code:  1234
+          periods:
+            2024-12-31:
+              accounts: # no reconciliations, no people, but later we might want adjustments
+                10000:
+                  value: 12
+                
+  expectation:
+    <<: *expectation_blueprint
+      
+                

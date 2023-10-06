@@ -1,0 +1,22 @@
+{
+  "id": {
+    "13827": 70716309
+  },
+  "test": "tests/liquid_demo_liquid_test.yml",
+  "handle": "liquid_demo",
+  "name_en": "Liquid demo",
+  "name_fr": "Liquid demo",
+  "name_nl": "Liquid demo",
+  "auto_hide_formula": "",
+  "text_configuration": null,
+  "virtual_account_number": "920000",
+  "reconciliation_type": "only_reconciled_with_data",
+  "public": false,
+  "allow_duplicate_reconciliations": false,
+  "is_active": true,
+  "externally_managed": false,
+  "text": "main.liquid",
+  "text_parts": {
+    "render_demo": "text_parts/render_demo.liquid"
+  }
+}

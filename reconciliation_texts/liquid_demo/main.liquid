@@ -1,0 +1,252 @@
+{% comment %}
+VALIDATION CONFIG
+
+{% assign validate_mapping_list = true %}
+{% assign validate_account_drop = true %}
+{% assign validate_person_drop = true %}
+{% assign validate_company_locales = true %}
+{% assign validate_adjustment_drop = true %}
+{% assign validate_report_results = true %}
+{% assign validate_company_locales = true %}
+{% endcomment %}
+
+{::font size='l'}**LIQUID TAG**{:/font}
+{% capture company_form %}{{ company.company_form | replace: '.','' | replace: ' ','' | remove:'-' | upcase }}{% endcapture %}
+{% liquid
+  case company_form
+    when 'NV' or 'SA'
+      assign NV = true
+      assign full_company_form = "Naamloze vennootschap"
+    when 'CVBA' or 'SCRL'
+      assign improper_cvba = false
+      if date_legal_doc > last_date_old_comp_law
+        assign improper_cvba = true
+      else
+        assign CVBA = true
+      endif
+      assign full_company_form = "Coöperatieve vennootschap met beperkte aansprakelijkheid"
+    else
+      assign VZW = true
+      assign full_company_form = "Vereniging zonder winstoogmerk"
+  endcase
+  echo "**company form:**<br>"
+  echo full_company_form
+%}
+
+Testing an input so we can see a difference between input / export
+{% input custom.test.value as:currency placeholder:0 %}
+
+
+{% comment %}
+=================================================================
+VALIDATE LIQUID TESTING FEATURE FOR SUPPORTING MAPPING LIST
+=================================================================
+{% endcomment %}
+{% liquid 
+  assign validate_mapping_list = validate_mapping_list | default:false
+
+  if validate_mapping_list 
+    assign mapping_list_data = period.account_mapping_list 
+    assign mapping_name = mapping_list_data.name 
+    assign mapping_id = mapping_list_data.id 
+    assign mapping_marketplace_template_id = mapping_list_data.marketplace_template_id 
+    assign logic_on_marketplace_mapping_list = false 
+    
+    result "mapping_name" mapping_name 
+    result "mapping_id" mapping_id 
+    result "mapping_marketplace_template_id" mapping_marketplace_template_id 
+    
+    if mapping_marketplace_template_id == 456 
+      assign logic_on_marketplace_mapping_list = true 
+    endif 
+    
+    result "logic_on_marketplace_mapping_list" logic_on_marketplace_mapping_list 
+  endif 
+%}
+
+
+{% comment %}
+=================================================================
+VALIDATE LIQUID TESTING FEATURE FOR FULLY SUPPORTING ACCOUNT DROP
+=================================================================
+{% endcomment %}
+{% if validate_account_drop %}
+  {% assign account_example = period.accounts.include_zeros.starred.221000.first %}
+  {% assign starred_account_number = account_example.number %}
+  {% assign starred_account_original_number = account_example.original_number %}
+  {% assign starred_account_mapped_number = account_example.mapped_number %}
+  {% assign starred_account_result = account_example.results.acc_example_result %}
+    
+  {% result "starred_account_name" account_example.name %}
+  {% result "starred_account_number" starred_account_number %}
+  {% result "starred_account_original_number" starred_account_original_number %}
+  {% result "starred_account_mapped_number" starred_account_mapped_number %}
+  {% result "starred_account_result" starred_account_result %}
+{% endif %}
+
+{% comment %}
+=================================================================
+VALIDATE LIQUID TESTING FEATURE FOR FULLY SUPPORTING PERSON DROP
+=================================================================
+{% endcomment %}
+{% if validate_person_drop %}
+  {% for person in period.people %}
+    {% capture person_id %}{{ person.persistent_id }}{% endcapture %}
+    
+    {% capture person_director_start_date %}director_start_date_{{ person_id }}{% endcapture %}
+    {% capture person_director_end_date %}director_end_date_{{ person_id }}{% endcapture %}
+    
+    {% result person_director_start_date person.director_start_date %}
+    {% result person_director_end_date person.director_end_date %}
+  {% endfor %}
+{% endif %}
+
+{% liquid
+  comment
+    =================================================================
+    VALIDATE LIQUID TESTING FEATURE ADJUSTMENT AND TRANSACTION DROP
+    =================================================================
+  endcomment
+
+  assign validate_adjustment_drop = validate_adjustment_drop | default:false
+  
+  if validate_adjustment_drop
+    for adj in period.adjustments
+      capture adj_key
+        if adj.external?
+          echo "external"
+        else
+          echo "internal"
+        endif
+        echo "_"
+        echo adj.number
+      endcapture
+
+      echo "adj_key: " 
+      echo adj_key
+      echo "<br>"
+
+      result adj_key adj_key
+      
+      for transaction in adj.transactions
+        assign transaction_index = forloop.index
+
+        echo transaction
+        
+        capture transaction_key
+          echo adj_key
+          echo "_"
+          echo transaction_index
+        endcapture
+
+        capture transaction_number_key
+          echo transaction_key
+          echo "_number"
+        endcapture
+
+        capture transaction_value_key
+          echo transaction_key
+          echo "_value"
+        endcapture
+
+        echo transaction_key
+        echo "<br>"
+        echo transaction_number_key
+        echo ": "
+        echo transaction.account.original_number
+
+        echo "<br>"
+
+        echo transaction_value_key
+        echo ": "
+        echo transaction.value      
+
+        echo "<br><br>"  
+
+        result transaction_number_key transaction.account.original_number
+        result transaction_value_key transaction.value
+      endfor
+    endfor
+  endif
+%}
+
+
+{% comment %}
+=================================================================
+VALIDATE LIQUID TESTING FEATURE REPORT RESULTS
+=================================================================
+{% endcomment %}
+{% liquid
+  assign validate_report_results = validate_report_results | default:false
+
+  if validate_report_results
+    assign reports = period.reports
+    assign report_results = reports.balance_sheet_and_result.results
+    assign fixed_assets_from_report = report_results.fixed_assets
+
+    result "fixed_assets_from_report" fixed_assets_from_report
+
+    echo "fixed_assets_from_report: "
+    echo fixed_assets_from_report
+    echo "<br>"
+    echo "report_results: "
+    echo report_results
+  endif
+
+%}
+
+{% liquid
+  comment
+    =================================================================
+    VALIDATE LIQUID TESTING FEATURE COMPANY LOCALES
+    =================================================================
+  endcomment
+
+  assign validate_company_locales = validate_company_locales | default:false
+
+  if validate_company_locales
+    assign company_locales = company.locales
+    result "company_locales" company_locales
+
+    echo "company_locales: "
+    echo company_locales
+  endif
+
+%}
+
+{% liquid
+  comment
+    =================================================================
+    VALIDATE LIQUID TESTING FEATURE LOCKED MAPPED NUMBERS
+    =================================================================
+  endcomment
+
+  assign validate_locked_mapped_number = validate_locked_mapped_number | default:false
+
+  if validate_locked_mapped_number
+    assign first_mapped_number = period.accounts.include_zeros.first.mapped_number
+    result "first_mapped_number" first_mapped_number
+
+    echo "first_mapped_number: "
+    echo first_mapped_number
+  endif
+
+%}
+
+{% comment %}
+=============
+VALIDATE ANALYTICAL COMPANY TYPE (LAFIFA TEST)
+result "company_parent_analytical_code" company_parent_analytical_code 
+=============
+{% endcomment %}
+{% liquid
+
+   assign consolidation_companies = company.analytical_type_1_codes 
+   assign consolidation_companies_options = consolidation_companies | map:"reference" | join:"|" 
+   assign consolidation_companies_codes = consolidation_companies | map:"code" | join:"|" 
+  
+   input company.custom.consolidation.company_parent as:select options:consolidation_companies_options option_values:consolidation_companies_codes required:true 
+  
+   assign company_parent_analytical_code = INT(company.custom.consolidation.company_parent) 
+
+%}

@@ -1,0 +1,129 @@
+name: update-liquid-templates-review
+run-name: Update liquid templates for functional review
+# We run this action when a "functional review" label is added to the PR
+on:
+  pull_request:
+    types:
+      - labeled
+      - synchronize
+jobs:
+  check-functional-review-label:
+    runs-on: ubuntu-latest
+    outputs:
+      has_functional_review_label: ${{ steps.haslabel.outputs.labeled-2-functional-review }}
+    steps:
+      - name: Checkout Repository - Fetch all history for all tags and branches
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Labeled to functional review
+        id: haslabel
+        uses: DanielTamkin/HasLabel@v1.0.4
+        with:
+          contains: "2-functional-review"
+
+  update-templates-for-functional-review:
+    needs: check-functional-review-label
+    if: needs.check-functional-review-label.outputs.has_functional_review_label
+    runs-on: ubuntu-latest
+    env:
+      SF_API_CLIENT_ID: "${{ secrets.SF_API_CLIENT_ID }}"
+      SF_API_SECRET: "${{ secrets.SF_API_SECRET }}"
+    steps:
+      - name: Checkout Repository - Fetch all history for all tags and branches
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup Node v18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Add silverfin-cli package latest version
+        run: |
+          npm install https://github.com/silverfin/silverfin-cli.git
+          VERSION=$(./node_modules/silverfin-cli/bin/cli.js -V)
+          echo "CLI version: ${VERSION}"
+      - name: Create Silverfin config file
+        run: |
+          mkdir -p $HOME/.silverfin/
+          touch $HOME/.silverfin/config.json
+          echo '${{ secrets.CONFIG_JSON }}' > $HOME/.silverfin/config.json
+      - name: Get changed liquid files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          since_last_remote_commit: false
+          dir_names: false
+          files: |
+            **/*.liquid
+      - name: Filter templates changed
+        id: templates_changed
+        run: |
+          pattern="(?:reconciliation_texts|shared_parts|export_files|account_templates)/([^/]+)/"
+          changed_files="${{ steps.changed-files.outputs.all_changed_files }}"
+          filtered_names=($(printf "%s\n" "$changed_files" | grep -oP "$pattern"))
+          # Remove the trailing "/" from the extracted names
+          filtered_names=("${filtered_names[@]%/}")
+          # Remove duplicated
+          changed_templates=($(printf "%s\n" "${filtered_names[@]}" | sort -u))
+          # Store outputs
+          echo "::set-output name=changed_templates::${changed_templates[*]}"
+          # Print the templates names
+          for name in "${changed_templates[@]}"; do
+            echo "$name"
+          done
+      - name: Update liquid templates
+        run: |
+          declare -a ERRORS
+          FIRM_ID=${{ vars.FIRM_ID_REVIEW }}
+          for CURRENT_DIR in ${{ steps.templates_changed.outputs.changed_templates }}; do
+            echo "Checking ${CURRENT_DIR}"
+            while [[ "${CURRENT_DIR}" != "." ]]; do
+              if [[ -e "${CURRENT_DIR}/config.json" ]]; then
+                HANDLE=$(cat ${CURRENT_DIR}/config.json | jq -r ".handle // .name")
+                FIRM_IDS=$(cat ${CURRENT_DIR}/config.json | jq -r ".id" | jq "keys_unsorted" | jq -r ".[]")
+                echo "Found config.json in ${CURRENT_DIR}. Handle: ${HANDLE}"
+                echo "Checking if ${FIRM_ID} exists in ${FIRM_IDS} for template ${HANDLE}"
+                if  [[ "${FIRM_IDS[*]}" =~ "${FIRM_ID}" ]]; then
+                  if [[ "${CURRENT_DIR}" == *reconciliation_texts* ]]; then
+                    echo "Updating reconciliation ${HANDLE} in firm ${FIRM_ID}"
+                    OUTPUT=$(node ./node_modules/silverfin-cli/bin/cli.js update-reconciliation --handle="${HANDLE}" --yes --firm "${FIRM_ID}")
+                  elif [[ "${CURRENT_DIR}" == *shared_parts* ]]; then
+                    echo "Updating shared part ${HANDLE} in firm ${FIRM_ID}"
+                    OUTPUT=$(node ./node_modules/silverfin-cli/bin/cli.js update-shared-part --shared-part="${HANDLE}" --yes --firm "${FIRM_ID}")
+                  fi
+                  if [[ "$OUTPUT" =~ "201" ]]; then
+                    echo "${HANDLE}: succesfully updated in firm ${FIRM_ID}"
+                  else
+                    echo "${HANDLE}: failed to update in firm ${FIRM_ID}"
+                    ERRORS+=("${OUTPUT}")
+                  fi
+                else
+                  echo "${HANDLE}: firm ${FIRM_ID} not present in config.json; skipping update"
+                fi
+                break
+              else
+                echo "Config file not found in ${CURRENT_DIR}"
+                CURRENT_DIR="$(dirname "${CURRENT_DIR}")"
+              fi
+            done
+          done
+          # CHECK ERRORS PRESENT
+          if [ ${#ERRORS[@]} -eq 0 ]; then
+              echo "All templates have been updated"
+          else
+              echo "Errors: ${ERRORS[@]}"
+              exit 1
+          fi
+      - name: Prepare CONFIG_JSON for secret
+        if: always()
+        run: |
+          CONFIG_JSON=$(cat $HOME/.silverfin/config.json | tr -d '\n')
+          echo "CONFIG_JSON=${CONFIG_JSON}" >> $GITHUB_ENV
+      - name: Store CONFIG_JSON as secret
+        uses: gliech/create-github-secret-action@v1
+        if: always()
+        with:
+          name: CONFIG_JSON
+          value: "${{ env.CONFIG_JSON }}"
+          pa_token: ${{ secrets.REPO_ACCESS_TOKEN }}
