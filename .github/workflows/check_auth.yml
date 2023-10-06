@@ -40,28 +40,6 @@ jobs:
         run: |
           mkdir -p $HOME/.silverfin/
           echo "${CONFIG_JSON}" > $HOME/.silverfin/config.json
-      # - name: Check if refresh process is already running
-      #   id: check-refresh
-      #   run: |
-      #     CONFIG_JSON=$(cat $HOME/.silverfin/config.json)
-      #     REFRESH_RUNNING=$(echo $CONFIG_JSON | jq -r '.refreshRunning' // "false")
-      #     # If no refreshRunning property is found, create it OR if refreshRunning property is found and false, in both cases, set the refreshRunning property to true and run refresh process
-      #     if [ -z "$REFRESH_RUNNING" ] || [ "$REFRESH_RUNNING" = "false" ]; then
-      #       echo "No refresh process running, starting it"
-      #       CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = "true"')
-      #       echo "$CONFIG_JSON" > $HOME/.silverfin/config.json
-      #       echo "run-refresh=true" >> $GITHUB_OUTPUT
-      #     else
-      #       # Refresh process is already running, do nothing
-      #       echo "Refresh process already running"
-      #       echo "run-refresh=false" >> $GITHUB_OUTPUT
-      #     fi
-      # - name: Update CONFIG_JSON with refreshRunning property in secrets
-      #   uses: gliech/create-github-secret-action@v1
-      #   with:
-      #     name: CONFIG_JSON
-      #     value: "${CONFIG_JSON}"
-      #     pa_token: ${{ secrets.REPO_ACCESS_TOKEN }}
       - name: Refresh token
         if: env.REFRESH_RUNNING == 'true'
         run: |

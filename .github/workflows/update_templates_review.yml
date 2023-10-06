@@ -65,17 +65,22 @@ jobs:
         run: |
           pattern="(?:reconciliation_texts|shared_parts|export_files|account_templates)/([^/]+)/"
           changed_files="${{ steps.changed-files.outputs.all_changed_files }}"
+          echo "All changed files: $changed_files"
           filtered_names=($(printf "%s\n" "$changed_files" | grep -oP "$pattern"))
           # Remove the trailing "/" from the extracted names
           filtered_names=("${filtered_names[@]%/}")
-          # Remove duplicated
+          # Remove duplicates
           changed_templates=($(printf "%s\n" "${filtered_names[@]}" | sort -u))
           # Store outputs
-          echo "::set-output name=changed_templates::${changed_templates[*]}"
-          # Print the templates names
-          for name in "${changed_templates[@]}"; do
-            echo "$name"
-          done
+          if [ ${#changed_templates[@]} -eq 0 ]; then
+            echo "[]" >> $GITHUB_OUTPUT
+          else
+            echo "changed_templates=${changed_templates[*]}" >> $GITHUB_OUTPUT
+            # Print the templates names
+            for name in "${changed_templates[@]}"; do
+              echo "$name"
+            done
+          fi
       - name: Update liquid templates
         run: |
           declare -a ERRORS
