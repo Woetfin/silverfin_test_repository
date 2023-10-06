@@ -33,6 +33,8 @@ jobs:
           if echo $CONFIG_JSON | jq '.refreshRunning' > /dev/null || echo $CONFIG_JSON | jq '.refreshRunning == false' > /dev/null; then
             echo "Refresh process not running yet, starting it"
             CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = true')
+            REFRESH_RUNNING=$(echo $CONFIG_JSON | jq '.refreshRunning')
+            echo "The value of refreshRunning is: $REFRESH_RUNNING"
             echo "::set-output name=run-refresh::true"
           else
             # Refresh process is already running, do nothing
@@ -42,6 +44,8 @@ jobs:
       - name: Prepare CONFIG_JSON to store updated refreshRunning property
         run: |
           CONFIG_JSON=$(cat $HOME/.silverfin/config.json | tr -d '\n')
+          REFRESH_RUNNING=$(echo $CONFIG_JSON | jq '.refreshRunning')
+          echo "The value of refreshRunning is: $REFRESH_RUNNING"
           echo "CONFIG_JSON=${CONFIG_JSON}" >> $GITHUB_ENV
       - name: Update CONFIG_JSON with refreshRunning property in secrets
         uses: gliech/create-github-secret-action@v1
@@ -61,7 +65,7 @@ jobs:
       - name: Prepare CONFIG_JSON to be stored as a secret
         if: always()
         run: |
-          CONFIG_JSON=$(cat $HOME/.silverfin/config.json | tr -d '\n')
+          CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = false' | tr -d '\n')
           echo "CONFIG_JSON=${CONFIG_JSON}" >> $GITHUB_ENV
       - name: Store CONFIG_JSON as secret
         uses: gliech/create-github-secret-action@v1
