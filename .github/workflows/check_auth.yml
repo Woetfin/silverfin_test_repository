@@ -12,28 +12,25 @@ jobs:
     outputs:
       tokens-updated: ${{ steps.update-config.outputs.tokens-updated }}
     steps:
-      - name: Setup Node v18
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - name: Checkout code
-        uses: actions/checkout@v2
       - name: Update REFRESH_RUNNING environment variable state
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.REPO_ACCESS_TOKEN }}
           script: |
-            const { data: { id } } = await github.rest.actions.getRepoEnvironmentVariable({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              environment_variable_name: 'REFRESH_RUNNING'
+            const { data: { value, id } } = await github.rest.actions.getEnvironmentVariable({
+              name: 'REFRESH_RUNNING',
+              repository_id: context.payload.repository.id
             });
-            await github.rest.actions.updateRepoEnvironmentVariable({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+            await github.rest.actions.updateEnvironmentVariable({
+              name: 'REFRESH_RUNNING',
+              repository_id: context.payload.repository.id,
               environment_variable_id: id,
               value: 'true'
             });
+      - name: Setup Node v18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
       - name: Add silverfin-cli package latest version
         run: |
           npm install https://github.com/silverfin/silverfin-cli.git
