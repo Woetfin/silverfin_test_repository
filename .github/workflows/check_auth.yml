@@ -7,10 +7,7 @@ jobs:
     env:
       SF_API_CLIENT_ID: "${{ secrets.SF_API_CLIENT_ID }}"
       SF_API_SECRET: "${{ secrets.SF_API_SECRET }}"
-      CONFIG_JSON: ${{ secrets.CONFIG_JSON }}
       REFRESH_RUNNING: ${{ secrets.REFRESH_RUNNING }}
-    outputs:
-      tokens-updated: ${{ steps.update-config.outputs.tokens-updated }}
     steps:
       - name: Set state of refresh process
         if: always()
@@ -46,11 +43,11 @@ jobs:
           npm install https://github.com/silverfin/silverfin-cli.git
           VERSION=$(./node_modules/silverfin-cli/bin/cli.js -V)
           echo "CLI version: ${VERSION}"
-      - name: Load Silverfin config file from secrets
-        id: silverfin-config
+      - name: Create Silverfin config file
         run: |
           mkdir -p $HOME/.silverfin/
-          echo "${CONFIG_JSON}" > $HOME/.silverfin/config.json
+          touch $HOME/.silverfin/config.json
+          echo '${{ secrets.CONFIG_JSON }}' > $HOME/.silverfin/config.json
       - name: Refresh token
         if: steps.run_refresh_state.outputs.run_refresh == 'true'
         run: |
