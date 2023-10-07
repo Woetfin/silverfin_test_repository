@@ -7,73 +7,64 @@ jobs:
     env:
       SF_API_CLIENT_ID: "${{ secrets.SF_API_CLIENT_ID }}"
       SF_API_SECRET: "${{ secrets.SF_API_SECRET }}"
+      CONFIG_JSON: ${{ secrets.CONFIG_JSON }}
+      REFRESH_RUNNING: ${{ secrets.REFRESH_RUNNING }}
     outputs:
-      tokens-updated: 'true'
+      tokens-updated: ${{ steps.update-config.outputs.tokens-updated }}
     steps:
-      - name: Set that refresh process should run
-        id: set_refresh_process
-        if: secrets.REFRESH_RUNNING == 'false'
-        run: |
-           echo "No existing refresh process running, starting this one"
-           echo "run_refresh=true" >> $GITHUB_OUTPUT
-      - name: Set REFRESH_RUNNING to true globally
+      - name: Set REFRESH_RUNNING to true
         uses: gliech/create-github-secret-action@v1
-        if: steps.set_refresh_process.outputs.run_refresh == 'true'
-        id: refresh-running
+        if: env.REFRESH_RUNNING == 'false'
         with:
           name: REFRESH_RUNNING
           value: 'true'
           pa_token: ${{ secrets.REPO_ACCESS_TOKEN }}
-      - name: Debug true
-        if: steps.set_refresh_process.outputs.run_refresh == 'true'
-        run: |
-           echo "refresh running is true"    
       - name: Get current value of REFRESH_RUNNING environment variable
-        if: steps.set_refresh_process.outputs.run_refresh == 'true'
+        if: env.REFRESH_RUNNING == 'true'
         run: |
           echo "REFRESH_RUNNING=true" >> $GITHUB_ENV
           echo "refresh running is ${REFRESH_RUNNING}"
       - name: Setup Node v18
-        if: steps.set_refresh_process.outputs.run_refresh == 'true'
+        if: env.REFRESH_RUNNING == 'true'
         uses: actions/setup-node@v3
         with:
           node-version: 18
       - name: Add silverfin-cli package latest version
-        if: steps.set_refresh_process.outputs.run_refresh == 'true'
+        if: env.REFRESH_RUNNING == 'true'
         run: |
           npm install https://github.com/silverfin/silverfin-cli.git
           VERSION=$(./node_modules/silverfin-cli/bin/cli.js -V)
           echo "CLI version: ${VERSION}"
-      - name: Create Silverfin config file
-        if: steps.set_refresh_process.outputs.run_refresh == 'true'
+      - name: Load Silverfin config file from secrets
+        id: silverfin-config
         run: |
           mkdir -p $HOME/.silverfin/
-          touch $HOME/.silverfin/config.json
-          echo '${{ secrets.CONFIG_JSON }}' > $HOME/.silverfin/config.json
+          echo "${CONFIG_JSON}" > $HOME/.silverfin/config.json
       - name: Refresh token
-        if: steps.set_refresh_process.outputs.run_refresh == 'true'
+        if: env.REFRESH_RUNNING == 'true'
         run: |
           CONFIG_JSON=$(cat $HOME/.silverfin/config.json)
-          for FIRM_ID in $(echo $CONFIG_JSON | jq 'del(.defaultFirmIDs) | keys[]'); do
+          for FIRM_ID in $(echo $CONFIG_JSON | jq 'del(.defaultFirmIDs) | del(.refreshRunning) | keys[]'); do
             echo "Refreshing token for firm $FIRM_ID"
             node ./node_modules/silverfin-cli/bin/cli.js config --set-firm $FIRM_ID
             node ./node_modules/silverfin-cli/bin/cli.js config --refresh-token
           done
-      - name: Prepare CONFIG_JSON for secret
-        if: steps.set_refresh_process.outputs.run_refresh == 'true'
+      - name: Prepare CONFIG_JSON to be stored as a secret
+        if: always()
         run: |
-          CONFIG_JSON=$(cat $HOME/.silverfin/config.json | tr -d '\n')
+          CONFIG_JSON=$(cat $HOME/.silverfin/config.json)
+          CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = false' | tr -d '\n')
           echo "CONFIG_JSON=${CONFIG_JSON}" >> $GITHUB_ENV
       - name: Store CONFIG_JSON as secret
-        if: steps.set_refresh_process.outputs.run_refresh == 'true'
         uses: gliech/create-github-secret-action@v1
+        if: always()
         with:
           name: CONFIG_JSON
-          value: "${{ env.CONFIG_JSON }}"
+          value: "${CONFIG_JSON}"
           pa_token: ${{ secrets.REPO_ACCESS_TOKEN }}
       - name: Set REFRESH_RUNNING to false
-        if: steps.set_refresh_process.outputs.run_refresh == 'true'
         uses: gliech/create-github-secret-action@v1
+        if: always()
         with:
           name: REFRESH_RUNNING
           value: 'false'
