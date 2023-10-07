@@ -44,6 +44,7 @@ jobs:
           VERSION=$(./node_modules/silverfin-cli/bin/cli.js -V)
           echo "CLI version: ${VERSION}"
       - name: Create Silverfin config file
+        if: steps.run_refresh_state.outputs.run_refresh == 'true'
         run: |
           mkdir -p $HOME/.silverfin/
           touch $HOME/.silverfin/config.json
