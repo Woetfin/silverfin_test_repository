@@ -47,8 +47,10 @@ jobs:
         with:
           since_last_remote_commit: false
           dir_names: false
+          include: 'reconciliation_texts/**,account_templates/**'
+          ref: 'main'
           files: |
-            **/*.{liquid,yml,yaml}
+            **/*.{liquid,yml,yaml,json}
       - name: Filter templates changed
         id: templates_changed
         run: |

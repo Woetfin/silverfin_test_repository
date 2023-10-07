@@ -47,6 +47,8 @@ jobs:
         with:
           since_last_remote_commit: false
           dir_names: false
+          exclude: './.github/**'
+          ref: 'main'
           files: |
             **/*.liquid
       - name: Filter templates changed
