@@ -12,25 +12,36 @@ jobs:
     outputs:
       tokens-updated: ${{ steps.update-config.outputs.tokens-updated }}
     steps:
-      - name: Set REFRESH_RUNNING to true
+      - name: Set state of refresh process
+        if: always()
+        id: run_refresh_state
+        run: |
+          # If REFRESH_RUNNING is false, set the run_refresh outputs of the current job to true
+          if [ ${{ env.REFRESH_RUNNING }} == 'false' ]; then
+            echo "Refresh tokens in this job"
+            echo "run_refresh=true" >> $GITHUB_OUTPUT
+          else 
+            echo "Refresh tokens job already running in another action"
+          fi
+      - name: Set REFRESH_RUNNING global state to true
         uses: gliech/create-github-secret-action@v1
-        if: env.REFRESH_RUNNING == 'false'
+        if: steps.run_refresh_state.outputs.run_refresh == 'true'
         with:
           name: REFRESH_RUNNING
           value: 'true'
           pa_token: ${{ secrets.REPO_ACCESS_TOKEN }}
       - name: Get current value of REFRESH_RUNNING environment variable
-        if: env.REFRESH_RUNNING == 'true'
+        if: steps.run_refresh_state.outputs.run_refresh == 'true'
         run: |
           echo "REFRESH_RUNNING=true" >> $GITHUB_ENV
           echo "refresh running is ${REFRESH_RUNNING}"
       - name: Setup Node v18
-        if: env.REFRESH_RUNNING == 'true'
+        if: steps.run_refresh_state.outputs.run_refresh == 'true'
         uses: actions/setup-node@v3
         with:
           node-version: 18
       - name: Add silverfin-cli package latest version
-        if: env.REFRESH_RUNNING == 'true'
+        if: steps.run_refresh_state.outputs.run_refresh == 'true'
         run: |
           npm install https://github.com/silverfin/silverfin-cli.git
           VERSION=$(./node_modules/silverfin-cli/bin/cli.js -V)
@@ -41,7 +52,7 @@ jobs:
           mkdir -p $HOME/.silverfin/
           echo "${CONFIG_JSON}" > $HOME/.silverfin/config.json
       - name: Refresh token
-        if: env.REFRESH_RUNNING == 'true'
+        if: steps.run_refresh_state.outputs.run_refresh == 'true'
         run: |
           CONFIG_JSON=$(cat $HOME/.silverfin/config.json)
           for FIRM_ID in $(echo $CONFIG_JSON | jq 'del(.defaultFirmIDs) | del(.refreshRunning) | keys[]'); do
@@ -50,21 +61,21 @@ jobs:
             node ./node_modules/silverfin-cli/bin/cli.js config --refresh-token
           done
       - name: Prepare CONFIG_JSON to be stored as a secret
-        if: always()
+        if: steps.run_refresh_state.outputs.run_refresh == 'true'
         run: |
           CONFIG_JSON=$(cat $HOME/.silverfin/config.json)
           CONFIG_JSON=$(echo $CONFIG_JSON | jq '.refreshRunning = false' | tr -d '\n')
           echo "CONFIG_JSON=${CONFIG_JSON}" >> $GITHUB_ENV
       - name: Store CONFIG_JSON as secret
         uses: gliech/create-github-secret-action@v1
-        if: always()
+        if: steps.run_refresh_state.outputs.run_refresh == 'true'
         with:
           name: CONFIG_JSON
           value: "${CONFIG_JSON}"
           pa_token: ${{ secrets.REPO_ACCESS_TOKEN }}
       - name: Set REFRESH_RUNNING to false
         uses: gliech/create-github-secret-action@v1
-        if: always()
+        if: steps.run_refresh_state.outputs.run_refresh == 'true'
         with:
           name: REFRESH_RUNNING
           value: 'false'
