@@ -250,6 +250,8 @@ validate_locked_mapped_number_2022:
 validate_analytical_company_type:
   context:
     period: 2024-12-31
+    configuration: |
+      {% assign validate_analytical_company_type = true %}
     
   data:
     company:
@@ -262,7 +264,7 @@ validate_analytical_company_type:
             name: "Equity"
         
     analytical_dimensions:
-      1:
+      "1":
         silverfin:
           code:  1234
           periods:
@@ -273,5 +275,7 @@ validate_analytical_company_type:
                 
   expectation:
     <<: *expectation_blueprint
+    results:
+      company_parent_analytical_code: 0
       
                 
