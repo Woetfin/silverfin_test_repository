@@ -241,12 +241,14 @@ result "company_parent_analytical_code" company_parent_analytical_code
 {% endcomment %}
 {% liquid
 
-   assign consolidation_companies = company.analytical_type_1_codes 
-   assign consolidation_companies_options = consolidation_companies | map:"reference" | join:"|" 
-   assign consolidation_companies_codes = consolidation_companies | map:"code" | join:"|" 
-  
-   input company.custom.consolidation.company_parent as:select options:consolidation_companies_options option_values:consolidation_companies_codes required:true 
-  
-   assign company_parent_analytical_code = INT(company.custom.consolidation.company_parent) 
-
+  if validate_analytical_company_type
+    assign consolidation_companies = company.analytical_type_1_codes 
+    assign consolidation_companies_options = consolidation_companies | map:"reference" | join:"|" 
+    assign consolidation_companies_codes = consolidation_companies | map:"code" | join:"|" 
+    
+    input company.custom.consolidation.company_parent as:select options:consolidation_companies_options option_values:consolidation_companies_codes required:true 
+    
+    assign company_parent_analytical_code = INT(company.custom.consolidation.company_parent) 
+    result "company_parent_analytical_code" company_parent_analytical_code
+  endif
 %}
