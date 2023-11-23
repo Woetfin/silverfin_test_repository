@@ -86,6 +86,7 @@ jobs:
                   # RUN TEST
                   echo "Running tests for ${HANDLE} in firm ${FIRM_ID}"
                   FORMATTED_OUTPUT=$(node ./node_modules/silverfin-cli/bin/cli.js run-test --handle "${HANDLE}" --firm "${FIRM_ID}")
+                  FORMMATED_OUTPUT=$(echo $FORMATTED_OUTPUT | sed 's/ Running tests.. (press '\''CTRL+c'\'' to stop)//g' | sed 's/◴//g' | sed 's/◷//g' | sed 's/◶//g' | sed 's/◵//g' | sed 's/◵//g')
                   OUTPUT=$(node ./node_modules/silverfin-cli/bin/cli.js run-test --handle "${HANDLE}" --firm "${FIRM_ID}" --status 2>&1)
                   # CHECK OUTPUT
                   if [[ "$OUTPUT" =~ "PASSED" ]]; then
